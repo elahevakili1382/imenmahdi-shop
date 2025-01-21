@@ -32,35 +32,26 @@ window.onload = () => {
 		document.querySelector(".header .header-2").classList.remove("active");
 	}
 };
-
-var featuredswiper = new Swiper(".featured-slider", {
-	spaceBetween: 10,
-	loop: true,
-	centeredSlides: true,
-	autoplay: {
-		delay: 9500,
-		disableOnInteraction: false,
-	},
-
-	navigation: {
-		nextEl: ".swiper-button-next",
-		prevEl: ".swiper-button-prev",
-	},
-
-	breakpoints: {
-		0: {
-			slidesPerView: 1,
+document.addEventListener("DOMContentLoaded", function () {
+	var featuredswiper = new Swiper(".featured-slider", {
+		slidesPerView: 3,
+		spaceBetween: 10,
+		loop: true,
+		autoplay: {
+			delay: 9500,
+			disableOnInteraction: false,
 		},
-		450: {
-			slidesPerView: 2,
+		navigation: {
+			nextEl: ".swiper-button-next",
+			prevEl: ".swiper-button-prev",
 		},
-		768: {
-			slidesPerView: 3,
+		breakpoints: {
+			0: { slidesPerView: 1 },
+			450: { slidesPerView: 2 },
+			768: { slidesPerView: 3 },
+			1024: { slidesPerView: 4 },
 		},
-		1024: {
-			slidesPerView: 4,
-		},
-	},
+	});
 });
 
 const imeniSliderswiper = new Swiper(".imeniSlider", {
@@ -155,3 +146,40 @@ sliders.forEach((slider) => {
 		},
 	});
 });
+document.addEventListener("DOMContentLoaded", () => {
+	const hamburger = document.getElementById("hambergur");
+	const nav = document.getElementById("nav");
+	const closeButton = document.getElementById("close");
+
+	// Toggle navigation menu on hamburger click
+	hamburger.addEventListener("change", () => {
+		if (hamburger.checked) {
+			nav.classList.add("active");
+		} else {
+			nav.classList.remove("active");
+		}
+	});
+
+	// Close menu when clicking the close button
+	closeButton.addEventListener("click", () => {
+		hamburger.checked = false;
+		nav.classList.remove("active");
+	});
+
+	// Prevent submenu hover behavior in mobile
+	const submenus = document.querySelectorAll(".submenu");
+	submenus.forEach((submenu) => {
+		const parentLink = submenu.previousElementSibling;
+		if (parentLink) {
+			parentLink.addEventListener("click", (e) => {
+				e.preventDefault();
+				submenu.classList.toggle("active");
+			});
+		}
+	});
+});
+
+function toggleMenu() {
+	const navbar = document.getElementById("nav");
+	navbar.classList.toggle("active");
+}

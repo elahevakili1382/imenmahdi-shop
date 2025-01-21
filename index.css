@@ -20,6 +20,9 @@ body {
 	font-family: "Vazir", sans-serif;
 	font-size: 2rem; /* Test font size for visibility */
 	line-height: 1.6;
+	margin: 0;
+	padding: 0;
+	background-color: #f9f9f9;
 }
 
 :root {
@@ -131,10 +134,12 @@ section {
 	font-weight: bolder;
 	color: var(--black);
 	text-decoration: none;
+	margin-right: 1rem;
 }
 
 .header .header-1 .logo i {
 	color: var(--orange);
+	margin-right: 1rem;
 }
 
 .header .header-1 .search-form {
@@ -198,11 +203,13 @@ body {
 .header-2 {
 	background: var(--orange);
 	position: relative;
-	z-index: 1000;
+	z-index: 100;
+	width: 100%;
 }
 
 /* Navbar Styles */
 .navbar {
+	height: ;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -230,30 +237,34 @@ body {
 	text-align: center;
 }
 
-.navbar a:hover,
+/* .navbar a:hover,
 .navbar a.active {
 	background-color: var(--dark-orange);
-}
+} */
 
 /* Submenu Styling */
 .submenu,
 .submenu-2 {
+	max-height: 0;
+	overflow: hidden;
 	display: none; /* Initially hidden */
 	visibility: hidden; /* Prevent rendering */
-	opacity: 0; /* Transparent */
+	/* opacity: 0; Transparent */
 	/* transition: opacity 0.3s ease; */
 }
 
 /* Show submenu on hover */
 .navbar li:hover > .submenu,
 .navbar li:focus-within > .submenu {
+	max-height: 1000px;
+	transition: max-height 0.4s ease-in;
 	display: block; /* Show submenu */
 	visibility: visible; /* Make it visible */
 	opacity: 1; /* Fully visible */
 }
 
 /* Show submenu-2 on hover */
-.submenu li:hover > .submenu-2,
+
 .submenu li:focus-within > .submenu-2 {
 	display: block;
 	visibility: visible;
@@ -267,22 +278,21 @@ body {
 	left: 0; /* Align to the left of the parent */
 	background: #fff; /* White background for better visibility */
 	border: 1px solid var(--dark-orange); /* Add border for clarity */
-	border-radius: 8px; /* Rounded corners for better appearance */
 	z-index: 10; /* Ensure it is above other elements */
 	min-width: 200px; /* Set a minimum width */
 	padding: 10px; /* Add padding inside */
 	box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for better design */
 	line-height: 4rem;
+	color: black;
 }
 
 /* Nested submenu positioning (submenu-2) */
 .submenu-2 {
 	position: absolute;
-	top: 0; /* Align to the top of the parent submenu item */
+	top: 10; /* Align to the top of the parent submenu item */
 	right: 100%; /* Position to the left of the parent submenu */
 	background: #fff;
 	border: 1px solid var(--dark-orange);
-	border-radius: 8px;
 	z-index: 15; /* Higher z-index for nested submenus */
 	min-width: 180px;
 	padding: 10px;
@@ -305,7 +315,6 @@ body {
 	color: #fff; /* White text for contrast */
 }
 
-/* Fixed Navbar */
 .header-2.active {
 	position: fixed;
 	top: 0;
@@ -313,8 +322,7 @@ body {
 	right: 0;
 	z-index: 9999;
 }
-
-.bottom-navbar {
+*/ .bottom-navbar {
 	text-align: center;
 	position: fixed;
 	bottom: 0;
@@ -757,6 +765,112 @@ body {
 
 .login-footer a:hover {
 	text-decoration: underline;
+}
+
+/* panel karbari */
+
+.container {
+	width: 80%;
+	margin: auto;
+	padding: 20px;
+	position: absolute;
+}
+
+.profile-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px;
+	background-color: #fff;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	margin-bottom: 20px;
+}
+
+.profile-header div {
+	flex: 1;
+	text-align: center;
+}
+
+.profile-header button {
+	padding: 10px 20px;
+	background-color: #007bff;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.profile-header button:hover {
+	background-color: #0056b3;
+}
+
+.order-section {
+	background-color: #fff;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 20px;
+}
+
+.order-section h3 {
+	margin: 0 0 20px;
+	font-size: 18px;
+	color: #333;
+}
+
+.order-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 15px;
+	border-bottom: 1px solid #ddd;
+}
+
+.order-item:last-child {
+	border-bottom: none;
+}
+
+.order-status {
+	color: red;
+}
+
+.sidebar {
+	position: absolute;
+	bottom: 30;
+	right: 0;
+	width: 250px;
+	height: 100%;
+	background-color: #fff;
+	border-left: 1px solid #ddd;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	padding: 20px;
+}
+
+.sidebar ul {
+	list-style: none;
+	padding: 0;
+	text-align: right;
+}
+
+.sidebar ul li {
+	margin-bottom: 15px;
+}
+
+.sidebar ul li a {
+	text-decoration: none;
+	color: #505051;
+	font-size: 1.5rem;
+}
+
+.sidebar ul li a:hover {
+	text-decoration: none;
+	color: var(--dark-orange);
+}
+
+.sidebar-header {
+	margin-bottom: 20px;
+	font-weight: bold;
+	font-size: 18px;
 }
 
 /*  */
@@ -1529,6 +1643,7 @@ body {
 		font-size: 1.5rem;
 	}
 }
+
 @media (max-width: 991px) {
 	html {
 		font-size: 55%;
@@ -1619,6 +1734,11 @@ body {
 }
 
 @media (max-width: 768px) {
+	#bar {
+		display: flex;
+		padding: 1rem;
+		margin: 1rem;
+	}
 	#productdetail {
 		padding: 10px;
 	}
@@ -1712,68 +1832,118 @@ body {
 	.header .header-1 {
 		position: relative;
 	}
-
-	.header .header-2 {
-		display: block;
-	}
-
-	.header .header-2 label {
-		position: absolute;
-		top: 0;
-		right: 0;
-		display: initial;
-		color: black;
-		font-size: 3rem;
+	/* Mobile Menu Styles */
+	#hambergur:checked ~ .header .header-2 .navbar {
+		right: 0; /* Show the navbar */
 	}
 
 	.header .header-2 .navbar {
-		display: block;
-		height: 200rem;
-		position: absolute;
-		cursor: pointer;
+		position: fixed;
 		top: 0;
-		right: -300px;
-		background-color: var(--orange);
-		border-top: 1px solid rgba(0, 0, 0, 0.1);
-		transition: 0.3;
+		right: -100%;
+		height: 100vh;
+		background: var(--orange);
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start;
+		width: 80%;
+		max-width: 300px;
+		transition: right 0.3s ease-in-out;
+		overflow-y: auto;
+		padding: 2rem;
 	}
 
-	#nav.active {
+	.header .header-2 .navbar.active {
 		right: 0;
+	}
+
+	.header .header-2 .navbar ul {
+		flex-direction: column;
+		width: 100%;
 	}
 
 	.header .header-2 .navbar ul li {
 		width: 100%;
-		height: 4rem;
+		margin-bottom: 1rem;
+	}
+
+	.header .header-2 .navbar ul li .submenu {
+		/* display: none; */
+		flex-direction: column;
+		width: 100%;
+		padding-left: 1rem;
+		color: var(--black);
+	}
+
+	.header .header-2 .navbar ul li .submenu.active {
+		display: flex;
 	}
 
 	.header .header-2 .navbar ul li a {
-		font-size: 2.1rem;
-	}
-
-	.header .header-2.navbar ul li ul {
-		overflow: scroll;
-
-		position: relative;
+		display: block;
+		text-decoration: none;
+		color: white;
+		font-size: 1.8rem;
+		padding: 0.8rem 1rem;
 		width: 100%;
+		box-sizing: border-box;
 	}
 
-	.header .header-2.navbar ul li ul li {
-		background: #0d0c0c;
-	}
-
-	#hambergur:checked ~ .header .header-2 {
-		display: initial;
-	}
-
-	.navbar {
-		flex-direction: column;
-	}
-	.submenu,
-	.submenu-2 {
-		position: static; /* Allow dropdowns to expand naturally */
+	#close {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		cursor: pointer;
+		background: none;
 		border: none;
-		box-shadow: none;
+		font-size: 2rem;
+	}
+
+	.submenu-2 {
+		position: relative; /* به جای absolute */
+		top: 0; /* هم‌تراز با parent */
+		right: 0;
+		display: none; /* پنهان به صورت پیش‌فرض */
+		visibility: hidden;
+		opacity: 0;
+		transition: all 0.3s ease-in-out;
+		background: #fff;
+		padding: 10px;
+		width: 100%; /* پهنای کامل برای موبایل */
+		border: 1px solid var(--dark-orange);
+	}
+
+	/* در حالت فعال */
+	.submenu-2.active {
+		display: block;
+		visibility: visible;
+		opacity: 1;
+	}
+
+	.submenu-2 a {
+		font-size: 1.4rem; /* فونت کوچک‌تر برای موبایل */
+		padding: 10px 15px;
+		text-align: right;
+		color: #333;
+	}
+
+	.submenu li a:hover {
+		color: var(--orange); /* تغییر رنگ در حالت کلیک */
+	}
+
+	.submenu-2 {
+		display: none;
+		visibility: hidden;
+		opacity: 0;
+		transition: all 0.3s ease-in-out;
+	}
+
+	/* نمایش زیرمنوی دوم در حالت فعال */
+	.submenu-2.active {
+		display: block;
+		visibility: visible;
+		opacity: 1;
 	}
 
 	.bottom-navbar {
@@ -1787,6 +1957,10 @@ body {
 	.header .header-1 {
 		position: relative;
 		box-shadow: var(--box-shadow);
+	}
+
+	.header .header-1 .logo {
+		margin-right: 4rem;
 	}
 
 	.header .header-1 .search-form {
@@ -1821,7 +1995,7 @@ body {
 	#close {
 		display: initial;
 		position: absolute;
-		top: 3rem;
+		top: 2em;
 		right: 3rem;
 		font-size: 2.4rem;
 		color: #222;
@@ -1850,6 +2024,14 @@ body {
 }
 
 @media (max-width: 480px) {
+	#close {
+		display: initial;
+		position: absolute;
+		top: 1rem;
+		right: 3rem;
+		font-size: 2.4rem;
+		color: #222;
+	}
 	#productdetail {
 		padding: 5px;
 	}
