@@ -5,6 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>سیف مارکت</title>
 		<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font/dist/font-face.css" rel="stylesheet" />
+		<link rel="stylesheet" href="mazer-main/src/account-profile.html" />
 
 		<!-- swiper -->
 		<!-- Link to Swiper's CSS -->
@@ -36,10 +37,13 @@
 		<!-- header section starts -->
 
 		<header class="header">
-			<input type="checkbox" id="hambergur" />
-			<label for="hambergur" id="bar"
-				><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z"></path></svg>
+			] <input type="checkbox" id="hambergur" onclick="toggleMenu()" />
+			<label for="hambergur" id="bar">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+					<path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z"></path>
+				</svg>
 			</label>
+
 			<div class="header-1">
 				<a href="#" class="logo"> <i class="fas fa-book"></i>ایمنی</a>
 
@@ -69,7 +73,11 @@
 							<a href="#">تجهیزات ایمنی</a>
 							<ul class="submenu">
 								<li>
-									<a href="imenimask.html">ماسک ایمنی</a>
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+										<path d="M11 11V5H13V11H19V13H13V19H11V13H5V11H11Z" class="toggle-icon"></path>
+									</svg>
+
+									<a href="imenimask.html">ماسک ایمنی </a>
 									<ul class="submenu-2">
 										<li><a href="panarama.html">تمام صورت</a></li>
 										<li><a href="6200.html">نیم صورت</a></li>
@@ -112,7 +120,9 @@
 								<li><a href="#">گازسنج</a></li>
 							</ul>
 						</li>
-						<a href="#" id="close"><i class="far fa-times"></i></a>
+						<a href="#" id="close" onclick="toggleMenu()">
+							<img width="25" height="25" src="https://img.icons8.com/fluency-systems-regular/48/close-window.png" alt="close-window" />
+						</a>
 					</ul>
 				</nav>
 			</div>
@@ -777,6 +787,8 @@
 		</section>
 
 		<!-- script -->
+		<script src="index.js"></script>
+
 		<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
 		<!-- <script>
 			const swiper = new Swiper(".swiper", {
@@ -801,7 +813,6 @@
 			});
 		</script> -->
 
-		<script src="index.js"></script>
 		]
 
 		<script

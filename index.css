@@ -286,8 +286,23 @@ body {
 	color: black;
 }
 
+.submenu li {
+	display: flex;
+}
+
+.submenu-2.open {
+	display: block;
+}
+
+.toggle-icon {
+	cursor: pointer;
+	margin-right: 5px;
+}
+
 /* Nested submenu positioning (submenu-2) */
 .submenu-2 {
+	display: none;
+
 	position: absolute;
 	top: 10; /* Align to the top of the parent submenu item */
 	right: 100%; /* Position to the left of the parent submenu */
@@ -1874,6 +1889,8 @@ body {
 		width: 100%;
 		padding-left: 1rem;
 		color: var(--black);
+		display: flex;
+		color: black;
 	}
 
 	.header .header-2 .navbar ul li .submenu.active {

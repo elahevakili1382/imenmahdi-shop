@@ -146,40 +146,31 @@ sliders.forEach((slider) => {
 		},
 	});
 });
-document.addEventListener("DOMContentLoaded", () => {
-	const hamburger = document.getElementById("hambergur");
-	const nav = document.getElementById("nav");
-	const closeButton = document.getElementById("close");
 
-	// Toggle navigation menu on hamburger click
-	hamburger.addEventListener("change", () => {
-		if (hamburger.checked) {
-			nav.classList.add("active");
-		} else {
-			nav.classList.remove("active");
-		}
-	});
+// Toggle Navbar on Mobile
+function toggleMenu() {
+	const navbar = document.getElementById("navbar");
+	navbar.classList.toggle("open");
+}
 
-	// Close menu when clicking the close button
-	closeButton.addEventListener("click", () => {
-		hamburger.checked = false;
-		nav.classList.remove("active");
-	});
+// Toggle Submenu Visibility on Mobile
+function toggleSubmenu(event) {
+	event.stopPropagation(); // Prevent triggering parent clicks
+	const parentLi = event.target.closest("li");
+	parentLi.classList.toggle("open");
+}
 
-	// Prevent submenu hover behavior in mobile
-	const submenus = document.querySelectorAll(".submenu");
-	submenus.forEach((submenu) => {
-		const parentLink = submenu.previousElementSibling;
-		if (parentLink) {
-			parentLink.addEventListener("click", (e) => {
-				e.preventDefault();
-				submenu.classList.toggle("active");
-			});
+// Attach Event Listeners for Submenu Links
+document.querySelectorAll(".submenu > li > a").forEach((link) => {
+	link.addEventListener("click", toggleSubmenu);
+});
+
+// اضافه کردن عملکرد toggle به آیکون svg
+document.querySelectorAll(".toggle-icon").forEach((icon) => {
+	icon.addEventListener("click", function () {
+		const submenu = this.nextElementSibling.nextElementSibling;
+		if (submenu) {
+			submenu.classList.toggle("open");
 		}
 	});
 });
-
-function toggleMenu() {
-	const navbar = document.getElementById("nav");
-	navbar.classList.toggle("active");
-}
