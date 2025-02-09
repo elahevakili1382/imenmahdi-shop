@@ -54,16 +54,17 @@ document.addEventListener("DOMContentLoaded", function () {
 	});
 });
 
-const imeniSliderswiper = new Swiper(".imeniSlider", {
-	loop: true,
-	autoplay: {
-		delay: 3000,
-	},
-	pagination: {
-		el: ".swiper-pagination",
-		clickable: true,
-	},
-});
+// const imeniSliderswiper = new Swiper(".imeniSlider", {
+// 	loop: true,
+// 	autoplay: {
+// 		delay: 3000,
+// 	},
+// 	pagination: {
+// 		el: ".swiper-pagination",
+// 		clickable: true,
+// 	},
+// });
+
 // Swiper for Arrivals Section
 // const arrivalsSwiper = new Swiper(".arrivals-slider", {
 // 	slidesPerView: 3,
@@ -147,30 +148,59 @@ sliders.forEach((slider) => {
 	});
 });
 
-// Toggle Navbar on Mobile
-function toggleMenu() {
-	const navbar = document.getElementById("navbar");
-	navbar.classList.toggle("open");
-}
+// document.addEventListener("DOMContentLoaded", function () {
+// 	const toggleIcons = document.querySelectorAll(".toggle-icon");
+// 	const navbar = document.querySelector(".navbar");
 
-// Toggle Submenu Visibility on Mobile
-function toggleSubmenu(event) {
-	event.stopPropagation(); // Prevent triggering parent clicks
-	const parentLi = event.target.closest("li");
-	parentLi.classList.toggle("open");
-}
+// 	// باز و بسته کردن ساب‌منو با کلیک
+// 	toggleIcons.forEach((icon) => {
+// 		icon.addEventListener("click", function (event) {
+// 			event.preventDefault(); // جلوگیری از رفتار پیش‌فرض لینک
+// 			const submenu = this.nextElementSibling; // پیدا کردن ساب‌منو مربوطه
+// 			if (submenu && (submenu.classList.contains("submenu") || submenu.classList.contains("submenu-2"))) {
+// 				submenu.classList.toggle("active");
+// 			}
+// 		});
+// 	});
 
-// Attach Event Listeners for Submenu Links
-document.querySelectorAll(".submenu > li > a").forEach((link) => {
-	link.addEventListener("click", toggleSubmenu);
-});
+// 	// بستن ساب‌منو وقتی خارج از آن کلیک می‌شود
+// 	document.addEventListener("click", function (event) {
+// 		if (!navbar.contains(event.target)) {
+// 			toggleIcons.forEach((icon) => {
+// 				const submenu = icon.nextElementSibling;
+// 				if (submenu && (submenu.classList.contains("submenu") || submenu.classList.contains("submenu-2"))) {
+// 					submenu.classList.remove("active");
+// 				}
+// 			});
+// 		}
+// 	});
+// });
 
-// اضافه کردن عملکرد toggle به آیکون svg
-document.querySelectorAll(".toggle-icon").forEach((icon) => {
-	icon.addEventListener("click", function () {
-		const submenu = this.nextElementSibling.nextElementSibling;
-		if (submenu) {
-			submenu.classList.toggle("open");
-		}
+document.addEventListener("DOMContentLoaded", function () {
+	const toggleIcons = document.querySelectorAll(".toggle-icon");
+
+	// باز و بسته کردن ساب‌منو با کلیک روی آیکون
+	toggleIcons.forEach((icon) => {
+		icon.addEventListener("click", function (event) {
+			event.preventDefault(); // جلوگیری از رفتار پیش‌فرض
+			event.stopPropagation(); // جلوگیری از انتشار رویداد به عناصر والد
+			const submenu = this.nextElementSibling; // پیدا کردن ساب‌منو مربوطه
+			if (submenu && (submenu.classList.contains("submenu") || submenu.classList.contains("submenu-2"))) {
+				submenu.classList.toggle("active");
+			}
+		});
+	});
+
+	// بستن ساب‌منو وقتی خارج از آن کلیک می‌شود
+	document.addEventListener("click", function (event) {
+		toggleIcons.forEach((icon) => {
+			const submenu = icon.nextElementSibling;
+			if (submenu && (submenu.classList.contains("submenu") || submenu.classList.contains("submenu-2"))) {
+				// بررسی کنید که آیا کلیک خارج از ساب‌منو و آیکون اتفاق افتاده است
+				if (!icon.contains(event.target) && !submenu.contains(event.target)) {
+					submenu.classList.remove("active");
+				}
+			}
+		});
 	});
 });
