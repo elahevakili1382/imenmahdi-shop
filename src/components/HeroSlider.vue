@@ -29,9 +29,11 @@
 import 'swiper/css'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 
+import slideImages from '@/assets/firefighter-suits-hanging-from-wall-station.png'
+
 const slides = [
   {
-    image: '/src/assets/firefighter-suits-hanging-from-wall-station.png',
+    image: slideImages,
     title: 'لوازم ایمنی و آتش نشانی مهدی',
     button: 'مشاهده محصولات ',
     position: 'top 30%',
