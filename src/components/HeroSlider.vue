@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-console.log('HeroSlider component mounted')
+console.log('Swiper test loaded')
 
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
