@@ -26,8 +26,8 @@
   </div>
 </template>
 <script setup>
-import 'swiper/css'
 import { Swiper, SwiperSlide } from 'swiper/vue'
+import 'swiper/css'
 
 import slideImages from '@/assets/firefighter-suits-hanging-from-wall-station.png'
 
