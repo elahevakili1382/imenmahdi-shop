@@ -25,9 +25,14 @@
     </swiper>
   </div>
 </template>
+
 <script setup>
+console.log('HeroSlider component mounted')
+
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
 
 import slideImages from '@/assets/firefighter-suits-hanging-from-wall-station.png'
 
@@ -39,4 +44,5 @@ const slides = [
     position: 'top 30%',
   },
 ]
+console.log('Slides:', slides)
 </script>
