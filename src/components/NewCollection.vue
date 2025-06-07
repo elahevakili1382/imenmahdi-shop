@@ -18,7 +18,7 @@ import axios from 'axios'
 const products = ref([])
 onMounted(async () => {
   try {
-    const res = await axios.get('/public/products.json')
+    const res = await axios.get('/public/data/products.json')
     products.value = res.data
   } catch (err) {
     console.log('خطا در دریافت محصولات :', err)
