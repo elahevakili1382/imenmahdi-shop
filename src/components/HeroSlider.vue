@@ -27,8 +27,6 @@
 </template>
 
 <script setup>
-console.log('Swiper test loaded')
-
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import 'swiper/css/navigation'
@@ -44,5 +42,4 @@ const slides = [
     position: 'top 30%',
   },
 ]
-console.log('Slides:', slides)
 </script>

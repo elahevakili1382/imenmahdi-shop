@@ -1,6 +1,8 @@
 <script setup>
 import Navbar from './components/Navbar.vue'
-import HeroSlider from './components/HeroSlider.vue'
+import { RouterView } from 'vue-router'
+
+// import HeroSlider from './components/HeroSlider.vue'
 
 import 'swiper/css'
 
@@ -9,9 +11,9 @@ import 'swiper/css'
 
 <template>
   <Navbar />
-  <HeroSlider />
+  <!-- <HeroSlider /> -->
 
-  <router-view />
+  <RouterView />
   <!-- <Footer /> -->
 </template>
 
