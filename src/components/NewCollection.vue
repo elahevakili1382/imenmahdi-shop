@@ -3,7 +3,7 @@
     <div
       v-for="(product, index) in products"
       :key="index"
-      class="p-4 bg-white hover:shadow-xl transition-all duration-300 rounded-2xl text-center"
+      class="p-4 bg-white h-40 hover:shadow-xl transition-all duration-300 rounded-2xl text-center"
     >
       <img :src="product.image" alt="" class="w-full h-40 object-cover rounded-xl mb-3" />
       <h3 class="text-base font-bold text-gray-700">{{ product.title }}</h3>
