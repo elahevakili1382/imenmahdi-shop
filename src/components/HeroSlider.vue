@@ -34,7 +34,7 @@ import 'swiper/css/pagination'
 
 const slides = [
   {
-    image: '/images/firefighter-suits-hanging-from-wall-station.png',
+    image: '/images/firefighter.png',
     title: 'لوازم ایمنی و آتش نشانی مهدی',
     button: 'مشاهده محصولات ',
     position: 'top 30%',
