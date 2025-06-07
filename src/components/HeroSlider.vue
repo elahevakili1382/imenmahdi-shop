@@ -32,11 +32,9 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
-import slideImages from '@/assets/firefighter-suits-hanging-from-wall-station.png'
-
 const slides = [
   {
-    image: slideImages,
+    image: '/images/firefighter-suits-hanging-from-wall-station.png',
     title: 'لوازم ایمنی و آتش نشانی مهدی',
     button: 'مشاهده محصولات ',
     position: 'top 30%',
