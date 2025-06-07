@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-col-2 md:grid-col-4 gap-4 mt-8">
+  <div class="grid grid-col-4 md:grid-col-4 gap-4 mt-8">
     <div
       v-for="(product, index) in products"
       :key="index"
