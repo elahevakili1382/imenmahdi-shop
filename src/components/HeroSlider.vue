@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full h-[300px] sm:h-[500px] overflow-hidden mt-5">
+  <div class="relative w-full h-[500px] sm:h-[500px] overflow-hidden mt-5">
     <swiper :slides-per-view="1" :loop="true" :autoplay:="{ delay: 5000 }" class="h-full">
       <swiper-slide v-for="(slide, index) in slides" :key="index" class="relative">
         <img
