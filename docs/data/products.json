@@ -10,7 +10,27 @@
     "price": "۱۲۰٬۰۰۰"
   },
   {
-    "image": "/imenmahdi-shop/images/hamlet2.png",
+    "image": "/imenmahdi-shop/images/mostsale/headlamp.webp",
+    "title": "چکمه ایمنی PVC",
+    "price": "۱۸۰٬۰۰۰"
+  },
+  {
+    "image": "/imenmahdi-shop/images/flashlight.png",
+    "title": "ماسک فیلتردار",
+    "price": "۹۰٬۰۰۰"
+  },
+  {
+    "image": "/imenmahdi-shop/images/glove2.png",
+    "title": "کلاه ایمنی مهندسی",
+    "price": "۱۵۰٬۰۰۰"
+  },
+  {
+    "image": "/imenmahdi-shop/images/tools.jpg",
+    "title": "دستکش نسوز صنعتی",
+    "price": "۱۲۰٬۰۰۰"
+  },
+  {
+    "image": "/imenmahdi-shop/images/traffic-control.jpg",
     "title": "چکمه ایمنی PVC",
     "price": "۱۸۰٬۰۰۰"
   },
@@ -20,42 +40,22 @@
     "price": "۹۰٬۰۰۰"
   },
   {
-    "image": "/imenmahdi-shop/images/hamlet1.png",
+    "image": "/imenmahdi-shop/images/mostsale/edge-personal-fall-limiter.jpg",
     "title": "کلاه ایمنی مهندسی",
     "price": "۱۵۰٬۰۰۰"
   },
   {
-    "image": "/imenmahdi-shop/images/full-face-mask-3.avif",
+    "image": "/imenmahdi-shop/images/boot2.png",
     "title": "دستکش نسوز صنعتی",
     "price": "۱۲۰٬۰۰۰"
   },
   {
-    "image": "/imenmahdi-shop/images/hamlet2.png",
-    "title": "چکمه ایمنی PVC",
-    "price": "۱۸۰٬۰۰۰"
-  },
-  {
-    "image": "/imenmahdi-shop/images/hamlet2.png",
-    "title": "ماسک فیلتردار",
-    "price": "۹۰٬۰۰۰"
-  },
-  {
-    "image": "/imenmahdi-shop/images/hamlet1.png",
+    "image": "/imenmahdi-shop/images/medical-e-plore.avif",
     "title": "کلاه ایمنی مهندسی",
     "price": "۱۵۰٬۰۰۰"
   },
   {
-    "image": "/imenmahdi-shop/images/full-face-mask-3.avif",
-    "title": "دستکش نسوز صنعتی",
-    "price": "۱۲۰٬۰۰۰"
-  },
-  {
-    "image": "/imenmahdi-shop/images/hamlet1.png",
-    "title": "کلاه ایمنی مهندسی",
-    "price": "۱۵۰٬۰۰۰"
-  },
-  {
-    "image": "/imenmahdi-shop/images/full-face-mask-3.avif",
+    "image": "/imenmahdi-shop/images/uvex-hearing-protect.webp",
     "title": "دستکش نسوز صنعتی",
     "price": "۱۲۰٬۰۰۰"
   }
