@@ -16,7 +16,7 @@
       <div
         v-for="(product, index) in products"
         :key="index"
-        class="bg-white min-h-[400px] rounded-xl shadow hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group border border-orange-600"
+        class="bg-white w-full max-w-[300px] sm:max-w-full min-h-[400px] mx-auto rounded-xl shadow hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group border border-orange-600"
       >
         <div class="overflow-hidden">
           <img
@@ -25,9 +25,17 @@
             class="w-full h-70 sm:h-64 md:h-72 lg:h-80 p-2 sm:p-3 md:p-4 object-cover rounded-t-xl transform group-hover:scale-105 transition duration-300"
           />
         </div>
-        <div class="p-4 text-center">
-          <h3 class="text-base font-bold mb-1">{{ product.title }}</h3>
-          <p class="text-orange-600">{{ product.price }} تومان</p>
+        <div class="p-4 flex flex-col justify-between h-full">
+          <div>
+            <h3 class="text-button font-bold mb-1">{{ product.title }}</h3>
+            <p class="text-orange-600">{{ product.price }} تومان</p>
+          </div>
+
+          <div class="flex justify-start mt-1">
+            <i
+              class="pi pi-shopping-cart text-orange-600 text-xl hover:text-orange-700 cursor-pointer"
+            ></i>
+          </div>
         </div>
       </div>
     </div>

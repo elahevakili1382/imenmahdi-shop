@@ -15,6 +15,7 @@
     "deploy": "npm run build && rimraf docs && copyfiles -u 1 dist/**/* docs && git add . && git commit -m \"deploy\" && git push"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.2",
     "@primevue/themes": "^4.3.4",
     "axios": "^1.9.0",
     "pinia": "^3.0.1",
