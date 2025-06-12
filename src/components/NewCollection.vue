@@ -9,33 +9,31 @@
     </span>
   </div>
 
-  <!--  -->
   <div class="container mx-auto px-4 sm:px-6 lg:px-16">
-    <!--  -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
       <div
         v-for="(product, index) in products"
         :key="index"
-        class="bg-white w-full max-w-[300px] sm:max-w-full min-h-[400px] mx-auto rounded-xl shadow hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group border border-orange-600"
+        class="bg-white w-full max-w-[300px] sm:max-w-full min-h-[420px] flex flex-col justify-between mx-auto rounded-xl shadow hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group border border-orange-600"
       >
-        <div class="overflow-hidden">
+        <!-- تصویر -->
+        <div class="overflow-hidden rounded-t-xl">
           <img
             :src="product.image"
             alt=""
-            class="w-full h-70 sm:h-64 md:h-72 lg:h-80 p-2 sm:p-3 md:p-4 object-cover rounded-t-xl transform group-hover:scale-105 transition duration-300"
+            class="w-full h-[240px] sm:h-[260px] md:h-[280px] lg:h-[300px] object-contain rounded-t-xl transform group-hover:scale-105 transition duration-300"
           />
         </div>
-        <div class="p-4 flex flex-col justify-between h-full">
-          <div>
-            <h3 class="text-button font-bold mb-1">{{ product.title }}</h3>
-            <p class="text-orange-600">{{ product.price }} تومان</p>
-          </div>
 
-          <div class="flex justify-start mt-1">
-            <i
-              class="pi pi-shopping-cart text-orange-600 text-xl hover:text-orange-700 cursor-pointer"
-            ></i>
+        <!-- محتوا پایین کارت -->
+        <div class="flex justify-between items-end px-4 py-3 mt-auto">
+          <div class="text-right">
+            <h3 class="text-sm sm:text-base font-semibold mb-1">{{ product.title }}</h3>
+            <p class="text-orange-600 text-sm">{{ product.price }} تومان</p>
           </div>
+          <i
+            class="pi pi-shopping-cart text-orange-600 text-2xl hover:text-orange-700 cursor-pointer"
+          ></i>
         </div>
       </div>
     </div>
@@ -47,6 +45,7 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
 const products = ref([])
+
 onMounted(async () => {
   try {
     const res = await axios.get(`${import.meta.env.BASE_URL}data/products.json`)

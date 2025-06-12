@@ -5,6 +5,11 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  resolve: {
+    alias: {
+      'swiper/modules': 'swiper/esm/modules', // فقط در صورت نیاز
+    },
+  },
   base: '/imenmahdi-shop/',
   plugins: [vue(), vueDevTools()],
   resolve: {
