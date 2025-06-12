@@ -1,215 +1,117 @@
-<script setup>
-import { ref } from 'vue'
-
-const isMobileMenuOpen = ref(false)
-const openSubMenu = ref(null)
-
-function toggleSubMenu(name) {
-  openSubMenu.value = openSubMenu.value === name ? null : name
-}
-
-function closeMenu() {
-  isMobileMenuOpen.value = false
-  openSubMenu.value = null
-}
-</script>
-
 <template>
-  <header class="bg-white shadow sticky top-0 z-50">
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16 items-center">
-        <!-- لوگو -->
-        <div class="text-2xl font-bold text-orange-500">ایمنی</div>
+  <footer class="bg-gray-100 text-gray-800 py-10 px-4">
+    <div
+      class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+    >
+      <!-- Location -->
+      <div>
+        <h3 class="text-xl font-bold mb-4">موقعیت مکانی</h3>
+        <a href="#" class="flex items-center gap-2 text-sm hover:text-orange-500">
+          <i class="fas fa-map-marker-alt"></i>
+          ایران، تهران، میدان حسن‌آباد، خیابان امام خمینی
+        </a>
+      </div>
 
-        <!-- منوی دسکتاپ -->
-        <ul class="hidden md:flex gap-8 items-center text-sm font-semibold text-gray-700">
-          <!-- لینک ساده -->
+      <!-- Quick Links -->
+      <div>
+        <h3 class="text-xl font-bold mb-4">دسترسی سریع</h3>
+        <ul class="space-y-2 text-sm">
           <li>
-            <router-link to="/" class="hover:text-orange-500 transition">صفحه اصلی</router-link>
-          </li>
-
-          <!-- زیرمنو -->
-          <li class="relative group">
-            <router-link to="#" class="hover:text-orange-500 transition">تجهیزات ایمنی</router-link>
-
-            <!-- زیرمنو فقط با هاور -->
-            <ul
-              class="absolute right-0 mt-2 hidden group-hover:flex flex-col bg-white shadow-md rounded-md w-48 text-sm border border-gray-100 z-50"
+            <a href="#" class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-arrow-left"></i> خانه</a
             >
-              <li>
-                <router-link to="#" class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                  >ماسک ایمنی</router-link
-                >
-              </li>
-              <li>
-                <router-link to="#" class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                  >کفش و پوتین اداری</router-link
-                >
-              </li>
-              <li>
-                <router-link to="#" class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                  >چکمه لاستیکی</router-link
-                >
-              </li>
-              <li>
-                <router-link to="#" class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                  >دستکش ایمنی</router-link
-                >
-              </li>
-              <li>
-                <router-link to="#" class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                  >گوشی صداگیر</router-link
-                >
-              </li>
-            </ul>
           </li>
-
-          <!-- زیرمنو -->
-          <li class="relative group">
-            <router-link to="#" class="hover:text-orange-500 transition"
-              >تجهیزات آتش نشانی
-            </router-link>
-
-            <!-- زیرمنو فقط با هاور -->
-            <ul
-              class="absolute right-0 mt-2 hidden group-hover:flex flex-col bg-white shadow-md rounded-md w-48 text-sm border border-gray-100 z-50"
-            >
-              <li>
-                <router-link
-                  to="#"
-                  class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                >
-                  لباس آتش نشانی
-                </router-link>
-              </li>
-              <li>
-                <router-link to="#" class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                  >شیلنگ آتش نشانی
-                </router-link>
-              </li>
-              <li>
-                <router-link to="#" class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                  >چکمه عملیاتی
-                </router-link>
-              </li>
-              <li>
-                <router-link
-                  to="#"
-                  class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                >
-                  سیستم اعلان حریق
-                </router-link>
-              </li>
-            </ul>
-          </li>
-
-          <!-- زیرمنو -->
-          <li class="relative group">
-            <router-link to="#" class="hover:text-orange-500 transition"
-              >تجهیزات ترافیکی
-            </router-link>
-
-            <!-- زیرمنو فقط با هاور -->
-            <ul
-              class="absolute right-0 mt-2 hidden group-hover:flex flex-col bg-white shadow-md rounded-md w-48 text-sm border border-gray-100 z-50"
-            >
-              <li>
-                <router-link to="#" class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                  >سرعت گیر
-                </router-link>
-              </li>
-              <li>
-                <router-link to="#" class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                  >چشم گربه ای
-                </router-link>
-              </li>
-            </ul>
-          </li>
-
-          <!-- زیرمنو -->
-          <li class="relative group">
-            <router-link to="#" class="hover:text-orange-500 transition"
-              >تجهیزات کار در ارتفاع
-            </router-link>
-
-            <!-- زیرمنو فقط با هاور -->
-            <ul
-              class="absolute right-0 mt-2 hidden group-hover:flex flex-col bg-white shadow-md rounded-md w-48 text-sm border border-gray-100 z-50"
-            >
-              <li>
-                <router-link to="#" class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                  >کمربند ایمنی</router-link
-                >
-              </li>
-              <li>
-                <router-link to="#" class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                  >جعبه ی کمک های اولیه
-                </router-link>
-              </li>
-              <li>
-                <router-link
-                  to="#"
-                  class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                >
-                  تشک نجات</router-link
-                >
-              </li>
-              <li>
-                <router-link
-                  to="#"
-                  class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                >
-                  کلاه کار در ارتفاع
-                </router-link>
-              </li>
-              <li>
-                <router-link
-                  to="#"
-                  class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                >
-                  چراغ قوه
-                </router-link>
-              </li>
-
-              <li>
-                <router-link
-                  to="#"
-                  class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                >
-                  نردبان طنابی
-                </router-link>
-              </li>
-
-              <li>
-                <router-link
-                  to="#"
-                  class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                >
-                  طناب ابریشمی
-                </router-link>
-              </li>
-
-              <li>
-                <router-link
-                  to="#"
-                  class="block px-4 py-2 hover:bg-orange-50 hover:text-orange-600"
-                >
-                  گازسنج
-                </router-link>
-              </li>
-            </ul>
-          </li>
-
-          <!-- لینک ساده -->
           <li>
-            <router-link to="/contact" class="hover:text-orange-500 transition"
-              >تماس با ما</router-link
+            <a href="#" class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-arrow-left"></i> محصولات بروز</a
+            >
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-arrow-left"></i> کلاه ایمنی</a
+            >
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-arrow-left"></i> نظرات کاربران</a
             >
           </li>
         </ul>
       </div>
-    </nav>
-  </header>
+
+      <!-- External Links -->
+      <div>
+        <h3 class="text-xl font-bold mb-4">لینک خارجی</h3>
+        <ul class="space-y-2 text-sm">
+          <li>
+            <a href="#" class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-arrow-left"></i> اطلاعات تماس</a
+            >
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-arrow-left"></i> سفارش‌ها</a
+            >
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-arrow-left"></i> حفظ حریم خصوصی</a
+            >
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-arrow-left"></i> روش‌های پرداخت</a
+            >
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-arrow-left"></i> خدمات ما</a
+            >
+          </li>
+        </ul>
+      </div>
+
+      <!-- Contact Info -->
+      <div>
+        <h3 class="text-xl font-bold mb-4">اطلاعات تماس</h3>
+        <ul class="space-y-2 text-sm">
+          <li>
+            <a href="tel:09368305628" class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-phone"></i> 09368305628</a
+            >
+          </li>
+          <li>
+            <a href="tel:09106419678" class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-phone"></i> 09106419678</a
+            >
+          </li>
+          <li>
+            <a
+              href="mailto:elahevakili8@gmail.com"
+              class="flex items-center gap-2 hover:text-orange-500"
+              ><i class="fas fa-envelope"></i> elahevakili8@gmail.com</a
+            >
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Social Icons -->
+    <div class="flex justify-center gap-4 mt-8 text-xl">
+      <a href="#" class="hover:text-orange-500"><i class="fab fa-instagram"></i></a>
+      <a href="#" class="hover:text-orange-500"><i class="fab fa-telegram"></i></a>
+      <a href="#" class="hover:text-orange-500"><i class="fab fa-whatsapp"></i></a>
+      <a href="#" class="hover:text-orange-500"><i class="fab fa-linkedin"></i></a>
+    </div>
+
+    <!-- Credit -->
+    <div class="text-center mt-6 text-sm text-gray-500">
+      ساخته شده توسط <span class="text-orange-500 font-semibold">Elahe Vakili</span> | تمامی حقوق
+      محفوظ است
+    </div>
+  </footer>
 </template>
 
-<style scoped></style>
+<script setup>
+// نیازی به اسکریپت خاصی نیست اینجا
+</script>
