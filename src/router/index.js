@@ -5,6 +5,7 @@ import ProductDetail from '../views/ProductDetail.vue'
 import LoginApp from '../views/LoginApp.vue'
 import CardShop from '../views/CardShop.vue'
 import ContactView from '../views/ContactView.vue'
+import { name } from '@vue/eslint-config-prettier/skip-formatting'
 
 const routes = [
   {
@@ -22,6 +23,11 @@ const routes = [
     name: 'ProductDetail',
     component: ProductDetail,
     props: true,
+  },
+  {
+    path: '/products/:categorySlug',
+    name: 'ProductCategory',
+    component: () => import('@/views/ProductCategory.vue'),
   },
   {
     path: '/login',
