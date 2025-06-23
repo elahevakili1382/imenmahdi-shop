@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { slugify } from '@/utils/slugify'
 
 const openDropdown = ref(null)
 const mobileMenuOpen = ref(false)
@@ -23,36 +24,39 @@ const navItems = [
     name: 'saftey',
     label: 'تجهیزات حفاظت فردی ',
     links: [
-      { name: 'جعبه ی کمک های اولیه ', to: '#' },
-      { name: 'پوتین و کفش اداری', to: '#' },
-      { name: 'تجهیزات عایق برق', to: '#' },
-      { name: 'چکمه لاستیکی ', to: '#' },
-      { name: 'دستکش ایمنی ', to: '#' },
-      { name: 'ماسک ایمنی ', to: '#' },
-      { name: 'گوشی صداگیر ', to: '#' },
-      { name: 'عینک ایمنی ', to: '#' },
-      { name: 'کلاه ایمنی ', to: '#' },
-      { name: 'لباس کار', to: '#' },
+      {
+        name: 'جعبه ی کمک های اولیه ',
+        to: `/products/category/${slugify('جعبه ی کمک های اولیه ')}`,
+      },
+      { name: 'پوتین و کفش اداری', to: `/products/category/${slugify('پوتین و کفش اداری')}` },
+      { name: 'تجهیزات عایق برق', to: `/products/category/${slugify('تجهیزات عایق برق')}` },
+      { name: 'چکمه لاستیکی ', to: `/products/category/${slugify('چکمه لاستیکی ')}` },
+      { name: 'دستکش ایمنی ', to: `/products/category/${slugify('دستکش ایمنی ')}` },
+      { name: 'ماسک ایمنی ', to: `/products/category/${slugify('ماسک ایمنی ')}` },
+      { name: 'گوشی صداگیر ', to: `/products/category/${slugify('گوشی صداگیر ')}` },
+      { name: 'عینک ایمنی ', to: `/products/category/${slugify('عینک ایمنی ')}` },
+      { name: 'کلاه ایمنی ', to: `/products/category/${slugify('کلاه ایمنی ')}` },
+      { name: 'لباس کار', to: `/products/category/${slugify('لباس کار')}` },
     ],
   },
   {
     name: 'breath',
     label: 'تجهیزات تنفسی ',
-    to: '#',
+    to: `/products/category/${slugify('تجهیزات تنفسی ')}`,
   },
   {
     name: 'fire',
     label: 'تجهیزات آتش نشانی',
     links: [
-      { name: 'لباس آتش نشانی', to: '#' },
-      { name: 'شیلنگ آتش نشانی', to: '#' },
-      { name: 'کپسول آتش نشانی', to: '#' },
-      { name: 'سیستم اعلان حریق ', to: '#' },
-      { name: 'دستکش آتش نشانی ', to: '#' },
-      { name: 'چکمه عملیاتی ', to: '#' },
-      { name: 'کلاه آتش نشانی ', to: '#' },
-      { name: 'چراغ قوه ', to: '#' },
-      { name: 'گازسنج ', to: '#' },
+      { name: 'لباس آتش نشانی', to: `/products/category/${slugify('لباس آتش نشانی')}` },
+      { name: 'شیلنگ آتش نشانی', to: `/products/category/${slugify('شیلنگ آتش نشانی')}` },
+      { name: 'کپسول آتش نشانی', to: `/products/category/${slugify('کپسول آتش نشانی')}` },
+      { name: 'سیستم اعلان حریق ', to: `/products/category/${slugify('سیستم اعلان حریق ')}` },
+      { name: 'دستکش آتش نشانی ', to: `/products/category/${slugify('دستکش آتش نشانی ')}` },
+      { name: 'چکمه عملیاتی ', to: `/products/category/${slugify('چکمه عملیاتی ')}` },
+      { name: 'کلاه آتش نشانی ', to: `/products/category/${slugify('کلاه آتش نشانی ')}` },
+      { name: 'چراغ قوه ', to: `/products/category/${slugify('چراغ قوه ')}` },
+      { name: 'گازسنج ', to: `/products/category/${slugify('گازسنج ')}` },
     ],
   },
 
@@ -60,21 +64,21 @@ const navItems = [
     name: 'trafic',
     label: 'تجهیزات ترافیکی ',
     links: [
-      { name: 'آیینه ترافیکی', to: '#' },
-      { name: 'سرعت گیر ', to: '#' },
-      { name: 'تابلو و علائم', to: '#' },
-      { name: 'مانع ترافیکی', to: '#' },
-      { name: 'چراغ های ترافیکی', to: '#' },
+      { name: 'آیینه ترافیکی', to: `/products/category/${slugify('آیینه ترافیکی')}` },
+      { name: 'سرعت گیر ', to: `/products/category/${slugify('سرعت گیر ')}` },
+      { name: 'تابلو و علائم', to: `/products/category/${slugify('تابلو و علائم')}` },
+      { name: 'مانع ترافیکی', to: `/products/category/${slugify('مانع ترافیکی')}` },
+      { name: 'چراغ های ترافیکی', to: `/products/category/${slugify('چراغ های ترافیکی')}` },
     ],
   },
   {
     name: 'height',
     label: 'تجهیزات کار در ارتفاع  ',
     links: [
-      { name: 'کلاه کار در ارتفاع ', to: '#' },
-      { name: 'کمربند ایمنی ', to: '#' },
-      { name: 'نردبان طنابی ', to: '#' },
-      { name: 'طناب ابریشمی ', to: '#' },
+      { name: 'کلاه کار در ارتفاع ', to: `/products/category/${slugify('کلاه کار در ارتفاع ')}` },
+      { name: 'کمربند ایمنی ', to: `/products/category/${slugify('کمربند ایمنی ')}` },
+      { name: 'نردبان طنابی ', to: `/products/category/${slugify('نردبان طنابی ')}` },
+      { name: 'طناب ابریشمی ', to: `/products/category/${slugify('طناب ابریشمی ')}` },
     ],
   },
   {

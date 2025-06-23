@@ -30,16 +30,17 @@ import axios from 'axios'
 
 const route = useRoute()
 const categorySlug = route.params.categorySlug
-const categoryName = ref(categorySlug.replace(/-/g, ''))
+const categoryName = ref(categorySlug.replace(/-/g, ' ')) // یا دیکشنری فارسی اگه خواستی
 
 const products = ref([])
 const loading = ref(true)
+
 onMounted(async () => {
   try {
     const res = await axios.get(
       `${import.meta.env.VITE_API_BASE_URL}/products/category/${categorySlug}`,
-      (products.value = res.data),
     )
+    products.value = res.data
   } catch (err) {
     console.error('❌ خطا در دریافت محصولات:', err)
   } finally {
