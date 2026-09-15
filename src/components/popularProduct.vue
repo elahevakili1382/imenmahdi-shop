@@ -68,9 +68,10 @@
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Pagination } from 'swiper/modules'
+
 import 'swiper/css'
 import 'swiper/css/pagination'
-import { Pagination } from 'swiper/modules'
 
 const breakpoints = {
   0: { slidesPerView: 1 },

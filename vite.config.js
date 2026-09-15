@@ -2,19 +2,25 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import glsl from 'vite-plugin-glsl'
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  resolve: {
-    alias: {
-      'swiper/modules': 'swiper/esm/modules', // فقط در صورت نیاز
-    },
-  },
-  base: '/imenmahdi-shop/',
-  plugins: [vue(), vueDevTools()],
+export default defineConfig(({ command }) => ({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // 'swiper/modules': 'swiper/esm/modules',
+    },
+  },
+  base: process.env.VERCEL ? '/' : '/imenmahdi-shop/',
+  plugins: [vue(), glsl(), ...(command === 'serve' ? [vueDevTools()] : [])],
+  server: {
+    host: '127.0.0.1',
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      '/api': 'http://127.0.0.1:3001',
+      '/uploads': 'http://127.0.0.1:3001',
     },
   },
   optimizeDeps: {
@@ -25,4 +31,4 @@ export default defineConfig({
       external: ['@vue/eslint-config-prettier'],
     },
   },
-})
+}))

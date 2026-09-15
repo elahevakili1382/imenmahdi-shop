@@ -1,50 +1,133 @@
 <template>
-  <section class="py-10 px-4">
-    <h1 class="text-2xl font-bold text-center mb-8">محصولات : {{ categoryName }}</h1>
+  <section class="container-shop py-8 sm:py-10">
+    <p class="text-sm text-steel mb-2">دسته‌بندی</p>
+    <h1 class="text-3xl font-bold mb-6">{{ title }}</h1>
 
-    <div v-if="loading" class="text-center">در حال بارگذاری...</div>
-    <div v-else-if="products.length === 0" class="text-center text-gray-500">محصولی یافت نشد</div>
+    <div class="lg:hidden mb-4">
+      <button class="btn btn-dark min-h-11 text-sm" type="button" @click="filtersOpen = !filtersOpen">
+        {{ filtersOpen ? 'بستن فیلتر' : 'فیلتر سایز، رنگ و قیمت' }}
+      </button>
+    </div>
 
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div v-for="product in products" :key="product.id" class="bg-white rounded shadow p-4">
-        <img
-          :src="product.image"
-          :alt="product.title"
-          class="w-full h-48 object-cover rounded mb-4"
+    <div class="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-8">
+      <div class="lg:sticky lg:top-24 lg:self-start" :class="filtersOpen ? 'block' : 'hidden lg:block'">
+        <ProductFilters
+          :selected-categories="[slug]"
+          :selected-sizes="selectedSizes"
+          :selected-colors="selectedColors"
+          :available-sizes="availableSizes"
+          :available-colors="availableColors"
+          :price="price"
+          :bounds="bounds"
+          :locked-category="slug"
+          @toggle-size="toggle('sizes', $event)"
+          @toggle-color="toggle('colors', $event)"
+          @update-price="setPrice"
+          @clear="clearFilters"
         />
-        <h3 class="text-lg font-semibold mb-2">{{ product.title }}</h3>
-        <p class="text-orange-500 font-bold">{{ product.price }} تومان</p>
-        <router-link
-          :to="`/product/${product.slug}`"
-          class="mt-3 inline-block text-blue-500 hover:underline"
-          >مشاهده جزئیات
-        </router-link>
+      </div>
+
+      <div>
+        <div v-if="visible.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+          <ProductCard v-for="product in visible" :key="product.id" :product="product" />
+        </div>
+        <div v-else class="surface-card p-10 text-center text-steel">
+          با این فیلتر محصولی در این دسته نیست.
+          <div class="mt-4">
+            <router-link to="/products" class="btn btn-primary">کاتالوگ کامل</router-link>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 </template>
+
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import axios from 'axios'
+import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import ProductCard from '@/components/ProductCard.vue'
+import ProductFilters from '@/components/ProductFilters.vue'
+import { categoryTree } from '@/data/catalog'
+import { useProductStore } from '@/stores/productStore'
 
 const route = useRoute()
-const categorySlug = route.params.categorySlug
-const categoryName = ref(categorySlug.replace(/-/g, ' ')) // یا دیکشنری فارسی اگه خواستی
+const router = useRouter()
+const store = useProductStore()
+const filtersOpen = ref(false)
+const slug = computed(() => String(route.params.categorySlug || ''))
+const selectedSizes = computed(() => listQuery('sizes'))
+const selectedColors = computed(() => listQuery('colors'))
 
-const products = ref([])
-const loading = ref(true)
+const scoped = computed(() => store.byCategory(slug.value))
+const prices = computed(() => scoped.value.map((item) => Number(item.price) || 0))
+const bounds = computed(() => ({
+  min: Math.min(...(prices.value.length ? prices.value : [0])),
+  max: Math.max(...(prices.value.length ? prices.value : [0])),
+}))
+const price = computed(() => ({
+  min: Number(route.query.min || bounds.value.min),
+  max: Number(route.query.max || bounds.value.max),
+}))
+const availableSizes = computed(() => uniqueOf(scoped.value.flatMap((item) => item.sizes || [])))
+const availableColors = computed(() => uniqueOf(scoped.value.flatMap((item) => item.colors || [])))
 
-onMounted(async () => {
-  try {
-    const res = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/products/category/${categorySlug}`,
-    )
-    products.value = res.data
-  } catch (err) {
-    console.error('❌ خطا در دریافت محصولات:', err)
-  } finally {
-    loading.value = false
+const visible = computed(() =>
+  scoped.value.filter((item) => {
+    const sizeOk =
+      !selectedSizes.value.length || (item.sizes || []).some((size) => selectedSizes.value.includes(size))
+    const colorOk =
+      !selectedColors.value.length || (item.colors || []).some((color) => selectedColors.value.includes(color))
+    return sizeOk && colorOk && item.price >= price.value.min && item.price <= price.value.max
+  }),
+)
+
+const title = computed(() => {
+  for (const group of categoryTree) {
+    if (group.slug === slug.value) return group.name
+    const child = group.children.find((item) => item.slug === slug.value)
+    if (child) return child.name
   }
+  return slug.value.replace(/-/g, ' ')
 })
+
+function listQuery(key) {
+  const raw = route.query[key]
+  return raw ? String(raw).split(',').filter(Boolean) : []
+}
+
+function uniqueOf(list) {
+  return [...new Set(list.filter(Boolean))]
+}
+
+function patchQuery(next) {
+  const query = { ...route.query, ...next }
+  Object.keys(query).forEach((key) => {
+    if (query[key] === '' || query[key] == null) delete query[key]
+  })
+  router.replace({ query })
+}
+
+function toggle(key, value) {
+  const current = listQuery(key)
+  const next = current.includes(value) ? current.filter((item) => item !== value) : [...current, value]
+  patchQuery({ [key]: next.join(',') })
+}
+
+function setPrice({ min, max }) {
+  const nextMin = Math.min(min, max)
+  const nextMax = Math.max(min, max)
+  patchQuery({
+    min: nextMin === bounds.value.min ? undefined : String(nextMin),
+    max: nextMax === bounds.value.max ? undefined : String(nextMax),
+  })
+}
+
+function clearFilters() {
+  const next = { ...route.query }
+  delete next.sizes
+  delete next.colors
+  delete next.min
+  delete next.max
+  router.replace({ query: next })
+}
 </script>

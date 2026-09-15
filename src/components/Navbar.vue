@@ -1,205 +1,438 @@
-<script setup>
-import { ref } from 'vue'
-import { slugify } from '@/utils/slugify'
-
-const openDropdown = ref(null)
-const mobileMenuOpen = ref(false)
-
-function toggleMobileMenu() {
-  mobileMenuOpen.value = !mobileMenuOpen.value
-}
-
-function toggleDropdown(name) {
-  openDropdown.value = openDropdown.value === name ? null : name
-}
-
-// for menu
-const navItems = [
-  {
-    name: 'main',
-    label: 'صفحه اصلی ',
-    to: '/',
-  },
-  {
-    name: 'saftey',
-    label: 'تجهیزات حفاظت فردی ',
-    links: [
-      {
-        name: 'جعبه ی کمک های اولیه ',
-        to: `/products/category/${slugify('جعبه ی کمک های اولیه ')}`,
-      },
-      { name: 'پوتین و کفش اداری', to: `/products/category/${slugify('پوتین و کفش اداری')}` },
-      { name: 'تجهیزات عایق برق', to: `/products/category/${slugify('تجهیزات عایق برق')}` },
-      { name: 'چکمه لاستیکی ', to: `/products/category/${slugify('چکمه لاستیکی ')}` },
-      { name: 'دستکش ایمنی ', to: `/products/category/${slugify('دستکش ایمنی ')}` },
-      { name: 'ماسک ایمنی ', to: `/products/category/${slugify('ماسک ایمنی ')}` },
-      { name: 'گوشی صداگیر ', to: `/products/category/${slugify('گوشی صداگیر ')}` },
-      { name: 'عینک ایمنی ', to: `/products/category/${slugify('عینک ایمنی ')}` },
-      { name: 'کلاه ایمنی ', to: `/products/category/${slugify('کلاه ایمنی ')}` },
-      { name: 'لباس کار', to: `/products/category/${slugify('لباس کار')}` },
-    ],
-  },
-  {
-    name: 'breath',
-    label: 'تجهیزات تنفسی ',
-    to: `/products/category/${slugify('تجهیزات تنفسی ')}`,
-  },
-  {
-    name: 'fire',
-    label: 'تجهیزات آتش نشانی',
-    links: [
-      { name: 'لباس آتش نشانی', to: `/products/category/${slugify('لباس آتش نشانی')}` },
-      { name: 'شیلنگ آتش نشانی', to: `/products/category/${slugify('شیلنگ آتش نشانی')}` },
-      { name: 'کپسول آتش نشانی', to: `/products/category/${slugify('کپسول آتش نشانی')}` },
-      { name: 'سیستم اعلان حریق ', to: `/products/category/${slugify('سیستم اعلان حریق ')}` },
-      { name: 'دستکش آتش نشانی ', to: `/products/category/${slugify('دستکش آتش نشانی ')}` },
-      { name: 'چکمه عملیاتی ', to: `/products/category/${slugify('چکمه عملیاتی ')}` },
-      { name: 'کلاه آتش نشانی ', to: `/products/category/${slugify('کلاه آتش نشانی ')}` },
-      { name: 'چراغ قوه ', to: `/products/category/${slugify('چراغ قوه ')}` },
-      { name: 'گازسنج ', to: `/products/category/${slugify('گازسنج ')}` },
-    ],
-  },
-
-  {
-    name: 'trafic',
-    label: 'تجهیزات ترافیکی ',
-    links: [
-      { name: 'آیینه ترافیکی', to: `/products/category/${slugify('آیینه ترافیکی')}` },
-      { name: 'سرعت گیر ', to: `/products/category/${slugify('سرعت گیر ')}` },
-      { name: 'تابلو و علائم', to: `/products/category/${slugify('تابلو و علائم')}` },
-      { name: 'مانع ترافیکی', to: `/products/category/${slugify('مانع ترافیکی')}` },
-      { name: 'چراغ های ترافیکی', to: `/products/category/${slugify('چراغ های ترافیکی')}` },
-    ],
-  },
-  {
-    name: 'height',
-    label: 'تجهیزات کار در ارتفاع  ',
-    links: [
-      { name: 'کلاه کار در ارتفاع ', to: `/products/category/${slugify('کلاه کار در ارتفاع ')}` },
-      { name: 'کمربند ایمنی ', to: `/products/category/${slugify('کمربند ایمنی ')}` },
-      { name: 'نردبان طنابی ', to: `/products/category/${slugify('نردبان طنابی ')}` },
-      { name: 'طناب ابریشمی ', to: `/products/category/${slugify('طناب ابریشمی ')}` },
-    ],
-  },
-  {
-    name: 'contact',
-    label: 'تماس با ما ',
-    to: '/contact',
-  },
-]
-</script>
-
 <template>
-  <header class="bg-white sticky top-0 z-50 h-[40px] w-full mt-5">
-    <div class="flex items-center justify-between h-full rtl mx-5">
-      <div class="text-orange-500 text-2xl font-bold">سیفتی مارکت</div>
-      <!-- search -->
-      <div class="hidden md:flex w-full max-w-md relative items-center">
-        <input
-          type="text"
-          placeholder="...جست وجو "
-          class="w-full rounded-r-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
-        />
-        <i
-          class="fas fa-search px-3 absolute left-3 top-1/2 -translate-y-1/2 text-black-700 pointer-events-none"
-        ></i>
-      </div>
-      <div class="flex items-center gap-4 text-gray-600 text-xl">
-        <i class="fas fa-user hover:text-orange-500 transition" title="حساب کاربری "></i>
-        <i class="fas fa-heart hover:text-orange-500 transition" title="حساب کاربری "></i>
-        <i class="fas fa-shopping-cart hover:text-orange-500 transition" title="حساب کاربری "></i>
+  <header
+    class="sticky top-0 z-50 overflow-visible backdrop-blur-md transition-colors duration-300"
+    :class="
+      overlay
+        ? 'border-b border-white/10 bg-night/70 text-stone'
+        : 'border-b border-sand bg-stone/90 text-ink'
+    "
+  >
+    <div class="container-shop flex items-center gap-4 py-3.5">
+      <router-link to="/" class="shrink-0 leading-tight">
+        <span class="block text-[11px] tracking-[0.22em] text-ember">IMEN YAB</span>
+        <span class="block font-extrabold text-xl">ایمن یاب</span>
+      </router-link>
 
-        <!--mobile menu  -->
-        <!-- آیکن منوی موبایل -->
-        <div class="flex flex-row-reverse md:hidden">
+      <form
+        class="hidden md:flex flex-1 max-w-xl h-11 items-stretch overflow-hidden rounded-full border"
+        :class="overlay ? 'border-white/15 bg-white/10' : 'border-sand bg-bone'"
+        @submit.prevent="search"
+      >
+        <label class="sr-only" for="site-search">جستجوی محصولات</label>
+        <input
+          id="site-search"
+          v-model="query"
+          type="search"
+          placeholder="جستجوی کلاه، ماسک، لباس آتش‌نشانی..."
+          class="h-full min-w-0 flex-1 border-0 bg-transparent px-4 text-sm outline-none"
+          :class="overlay ? 'text-stone placeholder:text-white/45' : 'text-ink'"
+        />
+        <button
+          class="h-full min-h-0 shrink-0 rounded-none px-5 text-sm font-semibold bg-night text-stone hover:bg-ink"
+          type="submit"
+        >
+          جستجو
+        </button>
+      </form>
+
+      <div class="ms-auto flex items-center gap-1">
+        <div ref="accountRoot" class="relative z-[80] shrink-0">
           <button
-            @click="toggleMobileMenu"
-            class="text-2xl text-orange-500 focus:outline-none z-50"
-            aria-label="باز کردن منو"
+            class="icon-btn"
+            :class="{ 'is-overlay': overlay }"
+            type="button"
+            :aria-expanded="accountOpen"
+            aria-controls="account-menu"
+            aria-label="حساب کاربری"
+            @click="accountOpen = !accountOpen"
           >
-            <i class="fas fa-bars"></i>
+            <i class="fa-regular fa-user" aria-hidden="true"></i>
           </button>
+          <div
+            v-if="accountOpen"
+            id="account-menu"
+            class="account-panel"
+            role="menu"
+          >
+            <template v-if="auth.isLoggedIn">
+              <p class="account-name">{{ auth.user?.name || 'خریدار' }}</p>
+              <p class="account-meta">{{ auth.user?.phone }}</p>
+              <router-link to="/account" role="menuitem" @click="accountOpen = false">
+                حساب کاربری
+              </router-link>
+              <router-link to="/account/orders" role="menuitem" @click="accountOpen = false">
+                سفارش‌های من
+              </router-link>
+              <router-link to="/account/profile" role="menuitem" @click="accountOpen = false">
+                اطلاعات حساب
+              </router-link>
+              <router-link v-if="auth.isAdmin" to="/dashboard" role="menuitem" @click="accountOpen = false">
+                داشبورد
+              </router-link>
+              <button type="button" role="menuitem" @click="logout">خروج</button>
+            </template>
+            <template v-else>
+              <p class="account-name">ورود به حساب</p>
+              <p class="account-meta">برای دیدن و ثبت اطلاعات کاربری وارد شوید.</p>
+              <router-link to="/login" role="menuitem" @click="accountOpen = false">ورود</router-link>
+              <router-link to="/register" role="menuitem" @click="accountOpen = false">ثبت‌نام</router-link>
+            </template>
+          </div>
         </div>
+
+        <router-link
+          to="/cart"
+          class="icon-btn"
+          :class="{ 'is-overlay': overlay }"
+          aria-label="سبد خرید"
+        >
+          <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+          <span v-if="cart.totalCount" class="cart-badge">{{ cart.totalCount }}</span>
+        </router-link>
+
+        <button
+          class="hamburger"
+          :class="{ 'is-overlay': overlay }"
+          type="button"
+          :aria-expanded="mobileOpen"
+          aria-controls="mobile-nav"
+          aria-label="منوی سایت"
+          @click="mobileOpen = !mobileOpen"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
       </div>
     </div>
 
-    <!-- Desktop menu -->
-    <!-- زیر منو ها  -->
-    <!-- Desktop menu -->
-    <nav class="hidden md:block w-full py-2 bg-orange-500 my-3 mx-0 px-3">
-      <ul
-        class="hidden md:flex justify-center w-full gap-8 items-center text-sm font-semibold text-white"
+    <form
+      class="md:hidden container-shop pb-3"
+      @submit.prevent="search"
+    >
+      <div
+        class="flex h-11 items-stretch overflow-hidden rounded-full border"
+        :class="overlay ? 'border-white/15 bg-white/10' : 'border-sand bg-bone'"
       >
-        <li v-for="item in navItems" :key="item.name" class="relative group">
-          <template v-if="item.links">
-            <span class="cursor-pointer text-base text-white">{{ item.label }}</span>
-            <ul
-              class="absolute right-0 mt-2 my-0 hidden group-hover:flex flex-col bg-white text-base text-orange-700 shadow-md w-48 border border-orange-800 z-40"
-            >
-              <li v-for="link in item.links" :key="link.name">
-                <router-link
-                  :to="link.to"
-                  class="block px-4 py-2 hover:bg-orange-600 hover:text-white"
-                >
-                  {{ link.name }}
-                </router-link>
-              </li>
-            </ul>
-          </template>
+        <label class="sr-only" for="site-search-mobile">جستجوی محصولات</label>
+        <input
+          id="site-search-mobile"
+          v-model="query"
+          type="search"
+          placeholder="جستجوی کالا..."
+          class="h-full min-w-0 flex-1 border-0 bg-transparent px-4 text-sm outline-none"
+          :class="overlay ? 'text-stone placeholder:text-white/45' : 'text-ink'"
+        />
+        <button class="h-full shrink-0 bg-night px-4 text-sm font-semibold text-stone" type="submit">
+          جستجو
+        </button>
+      </div>
+    </form>
+
+    <nav
+      class="hidden lg:block"
+      :class="overlay ? 'border-t border-white/10' : 'border-t border-sand/80'"
+    >
+      <ul
+        class="container-shop flex items-center gap-5 text-[13px] py-2.5 whitespace-nowrap overflow-x-clip"
+        :class="overlay ? 'text-white/75' : 'text-ink/80'"
+      >
+        <li v-for="item in navItems" :key="item.name || item.slug" class="relative group">
+          <router-link v-if="item.to" :to="item.to" class="hover:text-ember transition">
+            {{ item.label || item.name }}
+          </router-link>
           <template v-else>
-            <router-link :to="item.to || '/'" class="cursor-pointer text-base text-white">
-              {{ item.label }}
+            <router-link
+              :to="`/products/category/${item.slug}`"
+              class="inline-flex items-center gap-1.5 hover:text-ember transition"
+            >
+              {{ item.name }}
+              <i class="fa-solid fa-chevron-down text-[10px]" aria-hidden="true"></i>
             </router-link>
+            <div
+              class="invisible opacity-0 pointer-events-none group-hover:visible group-hover:opacity-100 group-hover:pointer-events-auto absolute right-0 top-full z-40 pt-2"
+            >
+              <ul class="w-56 rounded-2xl border border-sand bg-bone text-ink shadow-soft p-2">
+                <li>
+                  <router-link
+                    :to="`/products/category/${item.slug}`"
+                    class="block rounded-xl px-3 py-2 font-semibold hover:bg-sand"
+                  >
+                    همه {{ item.name }}
+                  </router-link>
+                </li>
+                <li v-for="child in item.children" :key="child.slug">
+                  <router-link
+                    :to="`/products/category/${child.slug}`"
+                    class="block rounded-xl px-3 py-2 hover:bg-sand"
+                  >
+                    {{ child.name }}
+                  </router-link>
+                </li>
+              </ul>
+            </div>
           </template>
         </li>
       </ul>
     </nav>
 
-    <!-- mobile Menu  -->
-    <!-- منوی موبایل -->
-
     <div
-      v-if="mobileMenuOpen"
-      @click="toggleMobileMenu"
-      class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-    ></div>
-    <aside
-      v-if="mobileMenuOpen"
-      class="fixed top-0 right-0 h-full w-3/4 max-w-xs bg-white shadow-lg z-50 overflow-y-auto transition-transform duration-300 md:hidden"
+      v-if="mobileOpen"
+      id="mobile-nav"
+      class="lg:hidden border-t border-sand bg-bone text-ink px-4 py-4"
     >
-      <div class="flex justify-between items-center px-4 py-4 border-b">
-        <span class="font-bold text-orange-600 text-lg">منو </span>
-        <button @click="toggleMobileMenu" aria-label="بستن ">
-          <i class="fas fa-tiems text-xl text-orange-600"></i>
-        </button>
-      </div>
-
-      <ul class="flex flex-col gap-4 text-base font-semibold px-4 py-6 text-orange-800">
-        <li v-for="item in navItems" :key="item.name">
-          <template v-if="item.links">
-            <details class="group">
-              <summary class="cursor-pointer py-4">{{ item.label }}</summary>
-              <ul class="pl-4 mt-2 flex flex-col gap-2 text-orange-600">
-                <li v-for="link in item.links" :key="link.name">
-                  <router-link
-                    :to="link.to"
-                    class="text-orange-600 hover:text-black transition-colors duration-200"
-                    >{{ link.name }}</router-link
-                  >
-                </li>
-              </ul>
-            </details>
-          </template>
-          <template v-else>
-            <router-link :to="item.to" class="block py-2">{{ item.label }}</router-link>
-          </template>
-        </li>
-      </ul>
-    </aside>
+      <nav class="flex flex-col text-sm">
+        <router-link class="py-2.5 border-b border-sand/70" to="/" @click="close">خانه</router-link>
+        <div v-for="group in categoryTree" :key="group.slug" class="border-b border-sand/70">
+          <button
+            class="flex w-full min-h-12 items-center justify-between gap-3 py-2.5 font-semibold text-start active:bg-sand rounded-xl px-1"
+            type="button"
+            :aria-expanded="openGroup === group.slug"
+            @click="toggleGroup(group.slug)"
+          >
+            <span>{{ group.name }}</span>
+            <i
+              class="fa-solid fa-chevron-down text-steel text-xs transition"
+              :class="openGroup === group.slug ? 'rotate-180' : ''"
+              aria-hidden="true"
+            ></i>
+          </button>
+          <div v-if="openGroup === group.slug" class="pb-2 pr-1">
+            <router-link
+              :to="`/products/category/${group.slug}`"
+              class="block rounded-xl px-3 py-2.5 font-semibold hover:bg-sand active:bg-sand"
+              @click="close"
+            >
+              همه {{ group.name }}
+            </router-link>
+            <router-link
+              v-for="child in group.children"
+              :key="child.slug"
+              :to="`/products/category/${child.slug}`"
+              class="block rounded-xl px-3 py-2.5 text-steel hover:bg-sand hover:text-ink active:bg-sand"
+              @click="close"
+            >
+              {{ child.name }}
+            </router-link>
+          </div>
+        </div>
+        <router-link class="py-2.5 border-b border-sand/70" to="/contact" @click="close">تماس</router-link>
+        <router-link class="py-2.5" :to="auth.isLoggedIn ? '/account' : '/login'" @click="close">
+          {{ auth.isLoggedIn ? 'حساب کاربری' : 'ورود / ثبت‌نام' }}
+        </router-link>
+      </nav>
+    </div>
   </header>
 </template>
+
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { categoryTree } from '@/data/catalog'
+import { useCartStore } from '@/stores/cartStore'
+import { useAuthStore } from '@/stores/authStore'
+
+const cart = useCartStore()
+const auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
+const query = ref('')
+const mobileOpen = ref(false)
+const accountOpen = ref(false)
+const accountRoot = ref(null)
+const openGroup = ref('')
+const scrolled = ref(false)
+
+const overlay = computed(() => route.name === 'Home' && !scrolled.value && !mobileOpen.value)
+
+function onScroll() {
+  scrolled.value = window.scrollY > 48
+}
+
+function onDocClick(event) {
+  if (!accountRoot.value?.contains(event.target)) accountOpen.value = false
+}
+
+function onKey(event) {
+  if (event.key === 'Escape') {
+    accountOpen.value = false
+    mobileOpen.value = false
+  }
+}
+
+function logout() {
+  auth.logout()
+  accountOpen.value = false
+  router.push('/')
+}
+
+onMounted(() => {
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  document.addEventListener('click', onDocClick)
+  window.addEventListener('keydown', onKey)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+  document.removeEventListener('click', onDocClick)
+  window.removeEventListener('keydown', onKey)
+})
+
+const navItems = computed(() => [
+  { name: 'home', label: 'خانه', to: '/' },
+  ...categoryTree,
+  { name: 'contact', label: 'تماس', to: '/contact' },
+])
+
+function search() {
+  router.push({ name: 'ProductsApp', query: query.value ? { q: query.value } : {} })
+  close()
+}
+
+function toggleGroup(slug) {
+  openGroup.value = openGroup.value === slug ? '' : slug
+}
+
+function close() {
+  mobileOpen.value = false
+  accountOpen.value = false
+  openGroup.value = ''
+}
+
+watch(
+  () => route.query.q,
+  (value) => {
+    query.value = String(value || '')
+  },
+  { immediate: true },
+)
+
+watch(
+  () => route.fullPath,
+  () => {
+    close()
+  },
+)
+</script>
+
 <style scoped>
-.rtl {
-  direction: rtl;
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  background: rgba(28, 25, 22, 0.06);
+}
+
+.icon-btn.is-overlay:hover,
+.icon-btn.is-overlay:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.cart-badge {
+  position: absolute;
+  top: 2px;
+  inset-inline-end: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-ember);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+
+.account-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  inset-inline-start: auto;
+  z-index: 80;
+  width: 17.5rem;
+  min-width: 17.5rem;
+  max-width: calc(100vw - 2rem);
+  height: auto;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid var(--color-sand);
+  background: var(--color-bone);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-md);
+  white-space: normal;
+}
+
+.account-name {
+  font-weight: 700;
+  padding: 6px 10px 0;
+}
+
+.account-meta {
+  color: var(--color-ash);
+  font-size: 12px;
+  padding: 2px 10px 8px;
+}
+
+.account-panel a,
+.account-panel button[role='menuitem'] {
+  display: block;
+  width: 100%;
+  text-align: start;
+  border: 0;
+  background: transparent;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.account-panel a:hover,
+.account-panel button[role='menuitem']:hover {
+  background: var(--color-sand);
+}
+
+.hamburger {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .hamburger {
+    width: 44px;
+    height: 44px;
+    display: inline-grid;
+    align-content: center;
+    justify-items: center;
+    gap: 5px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .hamburger span {
+    display: block;
+    width: 16px;
+    height: 1.5px;
+    background: currentColor;
+  }
 }
 </style>

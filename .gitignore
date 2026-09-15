@@ -28,3 +28,18 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+.env
+server/data/*.json
+server/data/*.json.bak
+server/data/*.db
+server/data/*.db-wal
+server/data/*.db-shm
+server/uploads/*
+!server/uploads/.gitkeep
+.cursor/
+.claude/
+.codex/
+.agents/
+.21st/
+mockups/
+design-system/

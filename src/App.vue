@@ -1,16 +1,13 @@
 <script setup>
-import Navbar from './components/Navbar.vue'
-import Footer from './components/Footer.vue'
-import { RouterView } from 'vue-router'
-import 'swiper/css'
+import { RouterView, useRoute } from 'vue-router'
+import ContactPopup from '@/components/ContactPopup.vue'
+
+const route = useRoute()
 </script>
 
 <template>
-  <Navbar />
   <RouterView />
-  <Footer />
+  <ContactPopup
+    v-if="route.name !== 'Invoice' && route.name !== 'CartInvoice' && !route.path.startsWith('/dashboard')"
+  />
 </template>
-
-<style scoped>
-/* استایل دلخواه */
-</style>

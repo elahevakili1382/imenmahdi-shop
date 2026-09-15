@@ -32,6 +32,7 @@
             <p class="text-orange-600 text-sm">{{ product.price }} تومان</p>
           </div>
           <i
+            @click="handleAddToCart(product)"
             class="pi pi-shopping-cart text-orange-600 text-2xl hover:text-orange-700 cursor-pointer"
           ></i>
         </div>
@@ -43,8 +44,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useCartStore } from '@/stores/cartStore'
+import { useRouter } from 'vue-router'
 
 const products = ref([])
+const cart = useCartStore()
+const router = useRouter()
 
 onMounted(async () => {
   try {
@@ -54,4 +59,16 @@ onMounted(async () => {
     console.log('خطا در دریافت محصولات :', err)
   }
 })
+
+const handleAddToCart = (product) => {
+  cart.addToCart({
+    id: product.id,
+    title: product.title,
+    price: product.price,
+    image: product.image,
+    quantity: 1, // مقدار پیش‌فرض
+  })
+
+  toast.success('✅ محصول به سبد خرید اضافه شد')
+}
 </script>
