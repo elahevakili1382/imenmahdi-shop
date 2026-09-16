@@ -26,20 +26,21 @@ const demoUsers = [
 
 function readUsers() {
   try {
-    const saved = JSON.parse(localStorage.getItem(USERS_KEY) || '[]')
-    const merged = [...demoUsers]
-    saved.forEach((user) => {
-      if (!merged.some((item) => item.phone === user.phone)) merged.push(user)
-    })
-    return merged
+    const saved = JSON.parse(localStorage.getItem(USERS_KEY) || 'null')
+    if (Array.isArray(saved) && saved.length) {
+      if (!saved.some((item) => item.role === 'admin')) {
+        return [...demoUsers, ...saved]
+      }
+      return saved
+    }
   } catch {
-    return [...demoUsers]
+    /* fall through */
   }
+  return [...demoUsers]
 }
 
 function persistUsers(users) {
-  const custom = users.filter((user) => !demoUsers.some((demo) => demo.id === user.id))
-  localStorage.setItem(USERS_KEY, JSON.stringify(custom))
+  localStorage.setItem(USERS_KEY, JSON.stringify(users))
 }
 
 function readSession() {
@@ -81,7 +82,12 @@ export const useAuthStore = defineStore('auth', {
       return Date.now() - state.session.startedAt > SESSION_MS
     },
     profileComplete: (state) =>
-      Boolean(state.session?.user?.name && state.session?.user?.phone && state.session?.user?.address),
+      Boolean(
+        state.session?.user?.name &&
+          state.session?.user?.phone &&
+          state.session?.user?.city &&
+          state.session?.user?.address,
+      ),
     lockRemainingMs: (state) => Math.max(0, (state.lock?.until || 0) - Date.now()),
   },
   actions: {
@@ -218,6 +224,44 @@ export const useAuthStore = defineStore('auth', {
       this.setSession(nextUser, this.session.startedAt)
       this.users = this.users.map((user) => (user.id === nextUser.id ? { ...user, ...payload } : user))
       persistUsers(this.users)
+      return this.user
+    },
+    async updateCredentials({ phone, password, currentPassword } = {}) {
+      if (!this.user) throw new Error('ابتدا وارد شوید.')
+      const nextPhone = String(phone || '').trim()
+      if (!/^09\d{9}$/.test(nextPhone)) throw new Error('شماره موبایل معتبر نیست.')
+      if (password && !isStrongPassword(password)) throw new Error(PASSWORD_HINT)
+
+      this.online = await apiReady()
+      if (this.online) {
+        try {
+          const { data } = await api.put('/auth/credentials', {
+            phone: nextPhone,
+            password: password || undefined,
+            currentPassword,
+          })
+          this.setSession(data.user, this.session.startedAt, data.token || localStorage.getItem(TOKEN_KEY))
+          return this.user
+        } catch (err) {
+          throw new Error(apiError(err, 'ذخیره اطلاعات ورود انجام نشد.'))
+        }
+      }
+
+      const current = this.users.find((user) => user.id === this.user.id)
+      if (!current || current.password !== currentPassword) {
+        throw new Error('رمز فعلی نادرست است.')
+      }
+      if (this.users.some((user) => user.phone === nextPhone && user.id !== current.id)) {
+        throw new Error('این شماره قبلاً ثبت شده است.')
+      }
+      const next = {
+        ...current,
+        phone: nextPhone,
+        password: password || current.password,
+      }
+      this.users = this.users.map((user) => (user.id === next.id ? next : user))
+      persistUsers(this.users)
+      this.setSession(next, this.session.startedAt)
       return this.user
     },
     canAccessOrder(order) {

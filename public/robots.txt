@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /imenmahdi-shop/
+
+Disallow: /imenmahdi-shop/dashboard
+Disallow: /imenmahdi-shop/account
+Disallow: /imenmahdi-shop/cart
+Disallow: /imenmahdi-shop/checkout
+Disallow: /imenmahdi-shop/orders
+Disallow: /imenmahdi-shop/staff
+Disallow: /imenmahdi-shop/invoice
+Disallow: /imenmahdi-shop/cart/invoice
+
+Sitemap: https://elahevakili1382.github.io/imenmahdi-shop/sitemap.xml

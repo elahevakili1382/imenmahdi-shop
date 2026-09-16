@@ -40,6 +40,15 @@ function open() {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS receipt_memory (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      phash TEXT NOT NULL,
+      sha256 TEXT,
+      verdict TEXT NOT NULL,
+      order_id TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL
+    );
   `)
   migrateJson()
   return sqlite
@@ -94,4 +103,31 @@ export function update(mutator) {
   const result = mutator(db)
   save(db)
   return result
+}
+
+function hamming(a, b) {
+  const len = Math.min(String(a || '').length, String(b || '').length)
+  if (!len) return 99
+  let d = 0
+  for (let i = 0; i < len; i += 1) if (a[i] !== b[i]) d += 1
+  return d + Math.abs(String(a).length - String(b).length)
+}
+
+export function rememberReceipt({ phash, sha256, verdict, orderId, notes }) {
+  if (!phash || !verdict) return
+  open()
+    .prepare(
+      `INSERT INTO receipt_memory (phash, sha256, verdict, order_id, notes, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    )
+    .run(phash, sha256 || '', verdict, orderId || '', notes || '', new Date().toISOString())
+}
+
+export function findSimilarReceipts(phash, maxDistance = 12) {
+  if (!phash) return []
+  const rows = open().prepare('SELECT phash, sha256, verdict, order_id, notes, created_at FROM receipt_memory').all()
+  return rows
+    .map((row) => ({ ...row, distance: hamming(phash, row.phash) }))
+    .filter((row) => row.distance <= maxDistance)
+    .sort((a, b) => a.distance - b.distance)
 }

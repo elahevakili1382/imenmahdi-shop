@@ -30,7 +30,7 @@
           <h2 class="font-bold mb-1">ارسال</h2>
           <p>{{ order.shipping?.name }}</p>
           <p v-if="order.deliveryDate">
-            {{ new Date(order.deliveryDate).toLocaleDateString('fa-IR') }} · {{ slotLabel(order.deliverySlot) }}
+            {{ new Date(order.deliveryDate).toLocaleDateString('fa-IR') }} · {{ shipping.slotLabel(order.deliverySlot) }}
           </p>
           <p v-else-if="order.destination === 'county'">۳ تا ۷ روز کاری</p>
           <p>{{ statusLabel[order.status] }}</p>
@@ -74,13 +74,14 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useOrderStore } from '@/stores/orderStore'
+import { useShippingStore } from '@/stores/shippingStore'
 import { statusLabel } from '@/data/orderStatus'
-import { slotLabel } from '@/data/shipping'
 import { formatPrice } from '@/utils/money'
 
 const route = useRoute()
 const auth = useAuthStore()
 const orders = useOrderStore()
+const shipping = useShippingStore()
 const order = computed(() => orders.byId(route.params.id))
 const denied = computed(() => !order.value || !auth.canAccessOrder(order.value))
 const date = computed(() => new Date(order.value?.createdAt || Date.now()).toLocaleDateString('fa-IR'))

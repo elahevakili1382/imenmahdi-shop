@@ -21,6 +21,8 @@
           <img
             :src="product.image"
             alt=""
+            loading="lazy"
+            decoding="async"
             class="w-full h-[240px] sm:h-[260px] md:h-[280px] lg:h-[300px] object-contain rounded-t-xl transform group-hover:scale-105 transition duration-300"
           />
         </div>
@@ -69,6 +71,6 @@ const handleAddToCart = (product) => {
     quantity: 1, // مقدار پیش‌فرض
   })
 
-  toast.success('✅ محصول به سبد خرید اضافه شد')
+  toast.success('محصول به سبد خرید اضافه شد')
 }
 </script>

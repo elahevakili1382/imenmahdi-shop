@@ -24,7 +24,7 @@
       <swiper-slide v-for="(item, index) in firstRow" :key="'row1-' + index">
         <div class="bg-white shadow border p-4 text-center">
           <div class="aspect-square mb-4 overflow-hidden rounded-lg max-h-64 mx-auto">
-            <img :src="item.image" :alt="item.title" class="w-full h-full object-cover" />
+            <img :src="item.image" :alt="item.title" class="w-full h-full object-cover" loading="lazy" decoding="async" />
           </div>
 
           <h3 class="text-lg font-semibold mb-2">{{ item.title }}</h3>
@@ -49,7 +49,7 @@
       <swiper-slide v-for="(item, index) in secondRow" :key="'row2-' + index">
         <div class="bg-white shadow border p-4 text-center">
           <div class="aspect-square mb-4 overflow-hidden rounded-lg max-h-64 mx-auto">
-            <img :src="item.image" :alt="item.title" class="w-full h-full object-cover" />
+            <img :src="item.image" :alt="item.title" class="w-full h-full object-cover" loading="lazy" decoding="async" />
           </div>
 
           <h3 class="text-lg font-semibold mb-2">{{ item.title }}</h3>

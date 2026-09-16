@@ -6,7 +6,8 @@ import express from 'express'
 import cors from 'cors'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { ensureDirs, load, update, uploadDir } from './db.js'
+import { inspectReceipt } from './receiptBot.js'
+import { ensureDirs, load, update, uploadDir, rememberReceipt } from './db.js'
 import { normalizePhone, notifyAdmin, notifyOrder, sendSms } from './sms.js'
 import { defaultShippingSettings, getShipping as catalogShipping, slotLabel } from '../src/data/shipping.js'
 import { shopBank } from '../src/data/bank.js'
@@ -31,7 +32,9 @@ app.use(express.json({ limit: '8mb' }))
 app.use('/uploads', express.static(uploadDir))
 
 function uniqueId(prefix) {
-  return `${prefix}-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
+  const n = String(Math.floor(1e7 + Math.random() * 9e7))
+  if (prefix === 'IM') return n
+  return `${prefix}-${n.slice(0, 6)}`
 }
 
 function seedUsers() {
@@ -89,19 +92,33 @@ function resolveShipping(id) {
 }
 
 function withDelivery(order) {
+  const settings = { ...defaultShippingSettings, ...(load().shipping || {}) }
+  const slots = Array.isArray(settings.tehranSlots) ? settings.tehranSlots : defaultShippingSettings.tehranSlots
   return {
     ...order,
-    deliverySlotLabel: slotLabel(order.deliverySlot),
+    deliverySlotLabel: slotLabel(order.deliverySlot, slots),
   }
 }
 
-function saveReceipt(dataUrl) {
+function parseDataUrl(dataUrl) {
   const match = String(dataUrl || '').match(/^data:(.+);base64,(.+)$/)
-  if (!match) return ''
-  const ext = match[1].includes('png') ? 'png' : 'jpg'
+  if (!match) return null
+  return { mime: match[1], buffer: Buffer.from(match[2], 'base64') }
+}
+
+function saveReceipt(dataUrl) {
+  const parsed = parseDataUrl(dataUrl)
+  if (!parsed) return ''
+  const ext = parsed.mime.includes('png') ? 'png' : parsed.mime.includes('webp') ? 'webp' : 'jpg'
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-  fs.writeFileSync(path.join(uploadDir, filename), Buffer.from(match[2], 'base64'))
+  fs.writeFileSync(path.join(uploadDir, filename), parsed.buffer)
   return `/uploads/${filename}`
+}
+
+function receiptPath(receiptUrl) {
+  const name = path.basename(String(receiptUrl || ''))
+  if (!name) return ''
+  return path.join(uploadDir, name)
 }
 
 app.get('/api/health', (_req, res) => {
@@ -253,6 +270,39 @@ app.put('/api/auth/profile', auth, (req, res) => {
   res.json({ user: publicUser(user) })
 })
 
+app.put('/api/auth/credentials', auth, (req, res) => {
+  const phone = String(req.body.phone || '').trim()
+  const password = req.body.password ? String(req.body.password) : ''
+  const currentPassword = String(req.body.currentPassword || '')
+
+  if (!/^09\d{9}$/.test(phone)) {
+    return res.status(400).json({ message: 'شماره موبایل معتبر نیست.' })
+  }
+  if (password && !isStrongPassword(password)) {
+    return res.status(400).json({ message: PASSWORD_HINT })
+  }
+
+  try {
+    const user = update((db) => {
+      const current = db.users.find((item) => item.id === req.user.id)
+      if (!current) throw new Error('کاربر پیدا نشد.')
+      if (!bcrypt.compareSync(currentPassword, current.passwordHash)) {
+        throw new Error('رمز فعلی نادرست است.')
+      }
+      if (db.users.some((item) => item.phone === phone && item.id !== current.id)) {
+        throw new Error('این شماره قبلاً ثبت شده است.')
+      }
+      current.phone = phone
+      if (password) current.passwordHash = bcrypt.hashSync(password, 10)
+      return current
+    })
+    res.json({ token: sign(user), user: publicUser(user) })
+  } catch (err) {
+    const status = err.message.includes('نادرست') ? 401 : err.message.includes('قبلاً') ? 409 : 400
+    res.status(status).json({ message: err.message })
+  }
+})
+
 app.get('/api/orders', auth, (req, res) => {
   const db = load()
   const list = req.user.role === 'admin' ? db.orders : db.orders.filter((item) => item.userId === req.user.id)
@@ -309,27 +359,96 @@ app.post('/api/orders', auth, async (req, res) => {
 })
 
 app.post('/api/orders/:id/receipt', auth, async (req, res) => {
+  const current = load().orders.find((item) => item.id === req.params.id)
+  if (!current) return res.status(404).json({ message: 'سفارش پیدا نشد.' })
+  if (req.user.role !== 'admin' && current.userId !== req.user.id) {
+    return res.status(403).json({ message: 'دسترسی ندارید.' })
+  }
+
+  const parsed = parseDataUrl(req.body.dataUrl)
+  const receiptUrl = parsed ? saveReceipt(req.body.dataUrl) : current.receiptUrl
+  let buffer = parsed?.buffer
+  if (!buffer && current.receiptUrl) {
+    const disk = receiptPath(current.receiptUrl)
+    if (disk && fs.existsSync(disk)) buffer = fs.readFileSync(disk)
+  }
+  if (!buffer) return res.status(400).json({ message: 'تصویر رسید به سرور نرسید.' })
+
+  const botResult = await inspectReceipt({
+    buffer,
+    fileName: req.body.name || current.receiptName || '',
+    fileSize: buffer.length,
+    mime: parsed?.mime || '',
+    declaredAmount: req.body.declaredAmount,
+    last4: req.body.last4,
+    order: current,
+  })
+  if (botResult.decision === 'approved') botResult.decision = 'needs_review'
+
   const next = update((db) => {
     const order = db.orders.find((item) => item.id === req.params.id)
     if (!order) return null
-    if (req.user.role !== 'admin' && order.userId !== req.user.id) return 'forbidden'
-    const receiptUrl = saveReceipt(req.body.dataUrl) || order.receiptUrl
-    order.receiptUrl = receiptUrl
+    order.receiptUrl = receiptUrl || order.receiptUrl
     order.receiptName = req.body.name || order.receiptName
-    order.receiptFingerprint = req.body.botResult?.fingerprint || ''
-    order.botResult = req.body.botResult || null
-    if (req.body.botResult?.decision === 'approved') order.status = ORDER_STATUS.PREPARING
-    else if (req.body.botResult?.decision === 'rejected') order.status = ORDER_STATUS.REJECTED
-    else order.status = ORDER_STATUS.AWAITING_REVIEW
+    order.receiptFingerprint = botResult.fingerprint
+    order.botResult = botResult
+    order.status = botResult.decision === 'rejected' ? ORDER_STATUS.REJECTED : ORDER_STATUS.AWAITING_REVIEW
     return order
   })
   if (!next) return res.status(404).json({ message: 'سفارش پیدا نشد.' })
-  if (next === 'forbidden') return res.status(403).json({ message: 'دسترسی ندارید.' })
-  if (next.status === ORDER_STATUS.PREPARING) notifyOrder('receipt_approved', withDelivery(next)).catch(() => {})
-  else if (next.status === ORDER_STATUS.REJECTED) notifyOrder('receipt_rejected', withDelivery(next)).catch(() => {})
-  else {
+
+  if (botResult.decision === 'rejected') {
+    rememberReceipt({
+      phash: botResult.phash,
+      sha256: botResult.sha256,
+      verdict: 'fake',
+      orderId: next.id,
+      notes: botResult.visualKind || 'auto-reject',
+    })
+    notifyOrder('receipt_rejected', withDelivery(next)).catch(() => {})
+  } else {
     notifyOrder('receipt_review', withDelivery(next)).catch(() => {})
     notifyAdmin('admin_receipt', withDelivery(next)).catch(() => {})
+  }
+  res.json(next)
+})
+
+app.post('/api/orders/:id/receipt/recheck', auth, admin, async (req, res) => {
+  const current = load().orders.find((item) => item.id === req.params.id)
+  if (!current) return res.status(404).json({ message: 'سفارش پیدا نشد.' })
+  const disk = receiptPath(current.receiptUrl)
+  if (!disk || !fs.existsSync(disk)) {
+    return res.status(400).json({ message: 'فایل رسید روی سرور نیست.' })
+  }
+  const buffer = fs.readFileSync(disk)
+  const botResult = await inspectReceipt({
+    buffer,
+    fileName: current.receiptName || '',
+    fileSize: buffer.length,
+    declaredAmount: req.body.declaredAmount || current.botResult?.declaredAmount || current.total,
+    last4: req.body.last4 || current.botResult?.last4 || '',
+    order: current,
+  })
+  if (botResult.decision === 'approved') botResult.decision = 'needs_review'
+  const next = update((db) => {
+    const order = db.orders.find((item) => item.id === req.params.id)
+    if (!order) return null
+    order.botResult = botResult
+    order.receiptFingerprint = botResult.fingerprint
+    if (botResult.decision === 'rejected' && order.status === ORDER_STATUS.AWAITING_REVIEW) {
+      order.status = ORDER_STATUS.REJECTED
+    }
+    return order
+  })
+  if (botResult.decision === 'rejected') {
+    rememberReceipt({
+      phash: botResult.phash,
+      sha256: botResult.sha256,
+      verdict: 'fake',
+      orderId: next.id,
+      notes: 'recheck',
+    })
+    notifyOrder('receipt_rejected', withDelivery(next)).catch(() => {})
   }
   res.json(next)
 })
@@ -343,6 +462,13 @@ app.post('/api/orders/:id/review', auth, admin, async (req, res) => {
     return order
   })
   if (!next) return res.status(404).json({ message: 'سفارش پیدا نشد.' })
+  rememberReceipt({
+    phash: next.botResult?.phash,
+    sha256: next.botResult?.sha256,
+    verdict: req.body.approved ? 'genuine' : 'fake',
+    orderId: next.id,
+    notes: req.body.adminNote || (req.body.approved ? 'admin-approved' : 'admin-rejected'),
+  })
   notifyOrder(next.status === ORDER_STATUS.PREPARING ? 'receipt_approved' : 'receipt_rejected', withDelivery(next)).catch(
     () => {},
   )
@@ -487,9 +613,22 @@ app.put('/api/content/guarantee', auth, admin, (req, res) => {
 
 app.put('/api/content/shipping', auth, admin, (req, res) => {
   const shipping = update((db) => {
+    const slots = Array.isArray(req.body.tehranSlots)
+      ? req.body.tehranSlots
+          .map((slot, index) => {
+            const label = String(slot?.label || '').trim()
+            if (!label) return null
+            const id = String(slot?.id || '')
+              .trim()
+              .replace(/\s+/g, '-')
+            return { id: id || `slot-${index + 1}`, label }
+          })
+          .filter(Boolean)
+      : null
     db.shipping = {
       tehranCourierPrice: Math.max(0, Number(req.body.tehranCourierPrice) || 0),
       tehranExpressPrice: Math.max(0, Number(req.body.tehranExpressPrice) || 0),
+      tehranSlots: slots?.length ? slots : defaultShippingSettings.tehranSlots,
     }
     return db.shipping
   })

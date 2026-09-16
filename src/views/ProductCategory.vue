@@ -28,7 +28,7 @@
       </div>
 
       <div>
-        <div v-if="visible.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <div v-if="visible.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4 xl:gap-5">
           <ProductCard v-for="product in visible" :key="product.id" :product="product" />
         </div>
         <div v-else class="surface-card p-10 text-center text-steel">
@@ -43,12 +43,13 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '@/components/ProductCard.vue'
 import ProductFilters from '@/components/ProductFilters.vue'
 import { categoryTree } from '@/data/catalog'
 import { useProductStore } from '@/stores/productStore'
+import { applySeo } from '@/utils/seo'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,6 +90,18 @@ const title = computed(() => {
   }
   return slug.value.replace(/-/g, ' ')
 })
+
+watch(
+  title,
+  (value) => {
+    applySeo({
+      title: value,
+      description: `خرید ${value} از فروشگاه تجهیزات ایمنی ایمن یاب.`,
+      path: `${import.meta.env.BASE_URL.replace(/\/$/, '')}${route.path}`,
+    })
+  },
+  { immediate: true },
+)
 
 function listQuery(key) {
   const raw = route.query[key]

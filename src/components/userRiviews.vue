@@ -28,6 +28,8 @@
         <img
           :src="review.image"
           :alt="review.name"
+          loading="lazy"
+          decoding="async"
           class="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-4 border-orange-200"
         />
         <h3 class="text-lg font-bold mb-2">{{ review.name }}</h3>

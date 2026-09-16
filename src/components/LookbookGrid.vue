@@ -57,10 +57,9 @@ const frames = [
     <div class="lookbook">
       <article class="look-intro">
         <p class="kicker" v-fade-up>کاتالوگ تصویری</p>
-        <h2 class="section-title" v-fade-up>هر دسته، یک نگاه</h2>
+        <h2 class="section-title" v-fade-up>ورود سریع به دسته‌ها</h2>
         <p>
-          لباس کار، کفش ایمنی، ترافیک، ارتفاع و آتش‌نشانی. عکس‌ها مسیر انتخاب را کوتاه می‌کنند؛
-          جزئیات فنی داخل هر دسته است.
+          یک تصویر، یک دسته. جزئیات فنی و قیمت داخل همان دسته است.
         </p>
       </article>
 
@@ -74,6 +73,8 @@ const frames = [
         <img
           :src="asset(frame.image)"
           :alt="frame.title"
+          loading="lazy"
+          decoding="async"
           :style="frame.position ? { objectPosition: frame.position } : undefined"
         />
         <div class="look-shade" aria-hidden="true" />
@@ -93,8 +94,31 @@ const frames = [
 <style scoped>
 .lookbook {
   display: grid;
-  gap: 14px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
   min-width: 0;
+}
+
+.look-intro,
+.look-featured {
+  grid-column: 1 / -1;
+}
+
+.look-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 11.25rem;
+  min-width: 0;
+  border-radius: 22px;
+  color: var(--color-paper);
+}
+
+.look-featured {
+  min-height: 16.5rem;
+}
+
+.look-card:not(.look-featured) .look-copy p {
+  display: none;
 }
 
 .look-intro {
@@ -110,15 +134,6 @@ const frames = [
   color: var(--color-ash);
   font-size: 0.95rem;
   line-height: 1.9;
-}
-
-.look-card {
-  position: relative;
-  overflow: hidden;
-  min-height: 14.5rem;
-  min-width: 0;
-  border-radius: 28px;
-  color: var(--color-paper);
 }
 
 .look-card img {
@@ -195,12 +210,16 @@ const frames = [
 
 @media (min-width: 640px) {
   .lookbook {
-    grid-template-columns: 1fr 1fr;
+    gap: 14px;
   }
 
-  .look-intro,
-  .look-featured {
-    grid-column: 1 / -1;
+  .look-card {
+    min-height: 14.5rem;
+    border-radius: 28px;
+  }
+
+  .look-card:not(.look-featured) .look-copy p {
+    display: block;
   }
 }
 

@@ -20,7 +20,10 @@
             </p>
           </div>
           <div class="flex gap-2">
-            <router-link :to="`/orders/${order.id}`" class="btn btn-ghost min-h-10 text-sm text-white border-white/15">
+            <router-link :to="`/orders/${order.id}`" class="btn btn-ghost min-h-10 text-sm">
+              پیگیری
+            </router-link>
+            <router-link :to="`/orders/${order.id}/pay`" class="btn btn-ghost min-h-10 text-sm">
               رسید
             </router-link>
             <router-link :to="`/invoice/${order.id}`" class="btn btn-primary min-h-10 text-sm">

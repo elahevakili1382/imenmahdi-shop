@@ -14,8 +14,13 @@ const TEMPLATES = {
     `${honorific(order.title, order.customerName)}\nسفارش ${order.id} ارسال شد (${order.shipping?.name || 'پیک'}).\n${deliveryLine(order)}\nایمنی مهدی`,
   delivered: (order) =>
     `${honorific(order.title, order.customerName)}\nسفارش ${order.id} تحویل شد. از خرید شما سپاسگزاریم.\nایمنی مهدی`,
-  admin_receipt: (order) =>
-    `رسید جدید برای سفارش ${order.id} از ${honorific(order.title, order.customerName)} ثبت شد و نیاز به بررسی دارد.`,
+  admin_receipt: (order) => {
+    const bot = order.botResult
+    const decision = bot?.decision === 'rejected' ? 'رد بات' : 'نیاز به بررسی'
+    const summary = bot?.adminSummary || 'فیدبک بات موجود نیست'
+    const conf = bot?.confidence ? ` · اطمینان ${Math.round(bot.confidence * 100)}٪` : ''
+    return `رسید سفارش ${order.id} از ${honorific(order.title, order.customerName)}\nوضعیت بات: ${decision}${conf}\n${summary}`
+  },
   admin_lead: (lead) => `شماره جدید از فوتر: ${lead.phone}`,
   otp_login: (payload) =>
     `کد ورود ایمنی مهدی: ${payload.code}\nاین کد تا ۲ دقیقه معتبر است.`,

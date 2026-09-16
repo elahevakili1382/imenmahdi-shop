@@ -3,7 +3,10 @@
     <header class="mb-5">
       <h1 class="text-2xl font-extrabold">اطلاعات حساب</h1>
       <p class="mt-2 text-sm leading-7 text-steel">
-        نام، شرکت و آدرس ارسال برای فاکتور و پیک همین‌جا ذخیره می‌شود.
+        نام، شهر و آدرس ارسال برای فاکتور و پیک همین‌جا ذخیره می‌شود.
+        <span v-if="route.query.redirect" class="block mt-1 text-ember">
+          بعد از ذخیره، به مرحله قبل برمی‌گردید.
+        </span>
       </p>
     </header>
 
@@ -45,10 +48,13 @@
 
 <script setup>
 import { reactive } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { useAuthStore } from '@/stores/authStore'
 
 const auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 const form = reactive({
   title: auth.user?.title === 'خانم' ? 'خانم' : 'آقا',
@@ -61,5 +67,7 @@ const form = reactive({
 async function save() {
   await auth.updateProfile(form)
   toast.success('اطلاعات حساب ذخیره شد')
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+  if (redirect) router.push(redirect)
 }
 </script>

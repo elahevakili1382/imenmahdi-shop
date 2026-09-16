@@ -1,31 +1,29 @@
 <template>
-  <section class="container-shop py-16 max-w-md">
-    <h1 class="text-3xl font-bold mb-2">ورود خریدار</h1>
-    <p class="text-steel mb-6">با شماره موبایل و رمزی که خودتان ساخته‌اید وارد شوید.</p>
-    <form class="surface-card p-6 space-y-4" @submit.prevent="submit">
+  <AuthShell title="ورود خریدار">
+    <form class="auth-form surface-card" @submit.prevent="submit">
       <input
         v-model="phone"
-        class="field"
-        dir="ltr"
+        class="field field-phone"
         inputmode="numeric"
         maxlength="11"
         placeholder="شماره موبایل"
         required
       />
       <input v-model="password" class="field" type="password" placeholder="رمز عبور" required />
-      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
-      <button class="btn btn-primary w-full" type="submit">ورود</button>
+      <p v-if="error" class="auth-error">{{ error }}</p>
+      <button class="btn btn-primary w-full auth-submit" type="submit">ورود</button>
     </form>
-    <p class="text-sm mt-4">
+    <template #footer>
       حساب ندارید؟
       <router-link to="/register" class="text-ember">ثبت‌نام</router-link>
-    </p>
-  </section>
+    </template>
+  </AuthShell>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import AuthShell from '@/components/AuthShell.vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const auth = useAuthStore()
@@ -55,10 +53,33 @@ async function submit() {
 </script>
 
 <style scoped>
+.auth-form {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
 .field {
   width: 100%;
   border: 1px solid #ddd4c8;
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.875rem;
+}
+
+.field-phone {
+  direction: rtl;
+  text-align: right;
+}
+
+.auth-error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 0.8125rem;
+}
+
+.auth-submit {
+  min-height: 42px;
+  font-size: 0.875rem;
 }
 </style>

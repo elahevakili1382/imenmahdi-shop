@@ -43,3 +43,6 @@ server/uploads/*
 .21st/
 mockups/
 design-system/
+
+.vercel
+*.traineddata

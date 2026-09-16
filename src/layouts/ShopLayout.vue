@@ -2,16 +2,20 @@
   <div class="shop-shell min-h-screen flex flex-col bg-stone text-ink">
     <a href="#main-content" class="skip-link">رفتن به محتوا</a>
     <Navbar />
-    <main id="main-content" class="flex-1" tabindex="-1">
+    <main id="main-content" class="shop-main flex-1" tabindex="-1">
       <RouterView />
     </main>
     <Footer />
+    <MobileBottomNav />
+    <ContactPopup />
   </div>
 </template>
 
 <script setup>
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
+import MobileBottomNav from '@/components/MobileBottomNav.vue'
+import ContactPopup from '@/components/ContactPopup.vue'
 </script>
 
 <style scoped>
@@ -35,5 +39,15 @@ import Footer from '@/components/Footer.vue'
 
 .skip-link:focus {
   top: 0.75rem;
+}
+
+.shop-main {
+  padding-bottom: 0;
+}
+
+@media (max-width: 1023px) {
+  .shop-main {
+    padding-bottom: calc(6.25rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 </style>

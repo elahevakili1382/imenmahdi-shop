@@ -1,16 +1,20 @@
 <template>
-  <section class="container-shop py-10 max-w-5xl">
+  <section class="container-shop py-8 sm:py-10 max-w-5xl checkout-page">
+    <CheckoutSteps current="checkout" />
+
     <h1 class="text-3xl font-bold mb-2">تسویه حساب</h1>
-    <p class="text-steel mb-8">پرداخت کارت‌به‌کارت است. ارسال بعد از تایید رسید انجام می‌شود.</p>
+    <p class="text-steel mb-8 leading-7">
+      پرداخت کارت‌به‌کارت است. بعد از ثبت سفارش، شماره کارت و آپلود رسید را می‌بینید.
+    </p>
 
     <form class="grid lg:grid-cols-[1.2fr_0.8fr] gap-6" @submit.prevent="submit">
       <div class="space-y-6">
-        <div class="surface-card p-6 space-y-4">
+        <div class="surface-card p-5 sm:p-6 space-y-4">
           <h2 class="font-bold">اطلاعات گیرنده</h2>
           <div class="grid grid-cols-2 gap-2">
             <button
               type="button"
-              class="rounded-2xl border px-3 py-3 text-sm font-semibold"
+              class="rounded-2xl border px-3 py-3.5 text-sm font-semibold min-h-12"
               :class="form.zone === 'tehran' ? 'border-ember bg-sand' : 'border-[#ddd4c8] bg-white'"
               @click="setZone('tehran')"
             >
@@ -18,7 +22,7 @@
             </button>
             <button
               type="button"
-              class="rounded-2xl border px-3 py-3 text-sm font-semibold"
+              class="rounded-2xl border px-3 py-3.5 text-sm font-semibold min-h-12"
               :class="form.zone === 'county' ? 'border-ember bg-sand' : 'border-[#ddd4c8] bg-white'"
               @click="setZone('county')"
             >
@@ -37,14 +41,14 @@
           <textarea v-model="form.note" class="field min-h-20" placeholder="توضیح سفارش (اختیاری)" />
         </div>
 
-        <div class="surface-card p-6">
+        <div class="surface-card p-5 sm:p-6">
           <h2 class="font-bold mb-1">روش ارسال</h2>
           <p v-if="zoneHint" class="text-sm text-steel mb-4">{{ zoneHint }}</p>
           <div class="grid sm:grid-cols-2 gap-3">
             <label
               v-for="method in visibleMethods"
               :key="method.id"
-              class="border rounded-2xl p-4 cursor-pointer"
+              class="border rounded-2xl p-4 cursor-pointer min-h-[7rem]"
               :class="form.shippingId === method.id ? 'border-ember bg-sand' : 'border-[#ddd4c8]'"
             >
               <input v-model="form.shippingId" type="radio" :value="method.id" class="sr-only" />
@@ -65,7 +69,7 @@
                   v-for="day in days"
                   :key="day.iso"
                   type="button"
-                  class="min-w-[72px] rounded-2xl border px-2 py-2.5 text-center"
+                  class="min-w-[76px] min-h-[72px] rounded-2xl border px-2 py-2.5 text-center"
                   :class="form.deliveryDate === day.iso ? 'border-ember bg-sand' : 'border-[#ddd4c8] bg-white'"
                   @click="form.deliveryDate = day.iso"
                 >
@@ -82,7 +86,7 @@
                   v-for="slot in tehranSlots"
                   :key="slot.id"
                   type="button"
-                  class="rounded-2xl border px-2 py-2.5 text-sm font-semibold"
+                  class="rounded-2xl border px-2 py-3 text-sm font-semibold min-h-12"
                   :class="form.deliverySlot === slot.id ? 'border-ember bg-sand' : 'border-[#ddd4c8] bg-white'"
                   @click="form.deliverySlot = slot.id"
                 >
@@ -94,7 +98,7 @@
         </div>
       </div>
 
-      <aside class="surface-card p-6 h-fit">
+      <aside class="surface-card p-6 h-fit lg:sticky lg:top-24 checkout-summary">
         <h2 class="font-bold mb-4">مبلغ قابل واریز</h2>
         <p class="flex justify-between text-sm mb-2">
           <span>کالا</span><span>{{ formatPrice(cart.totalPrice) }} تومان</span>
@@ -107,16 +111,19 @@
         <p class="flex justify-between font-bold text-lg mb-6">
           <span>جمع</span><span>{{ formatPrice(payable) }} تومان</span>
         </p>
-        <button class="btn btn-primary w-full" type="submit">ثبت سفارش و نمایش کارت</button>
+        <button class="btn btn-primary w-full min-h-11" type="submit">
+          ثبت سفارش و نمایش کارت
+        </button>
       </aside>
     </form>
   </section>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
+import CheckoutSteps from '@/components/CheckoutSteps.vue'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useOrderStore } from '@/stores/orderStore'
@@ -142,8 +149,18 @@ const form = reactive({
   note: '',
   shippingId: initialTehran ? 'tehran-courier' : 'tipax',
   deliveryDate: days[0]?.iso || '',
-  deliverySlot: '09-12',
+  deliverySlot: tehranSlots.value[0]?.id || '09-12',
 })
+
+watch(
+  tehranSlots,
+  (slots) => {
+    if (!slots.some((slot) => slot.id === form.deliverySlot)) {
+      form.deliverySlot = slots[0]?.id || ''
+    }
+  },
+  { immediate: true },
+)
 
 const visibleMethods = computed(() => shippingStore.methodsFor(form.zone))
 const shipping = computed(() => shippingStore.getShipping(form.shippingId))
@@ -194,3 +211,9 @@ async function submit() {
   router.push({ name: 'OrderStatus', params: { id: order.id } })
 }
 </script>
+
+<style scoped>
+.checkout-page {
+  padding-bottom: 2.5rem;
+}
+</style>

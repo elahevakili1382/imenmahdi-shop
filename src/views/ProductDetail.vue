@@ -16,6 +16,8 @@
             :src="asset(activeImage)"
             :alt="product.title"
             class="mx-auto h-[240px] sm:h-[300px] w-full object-contain"
+            fetchpriority="high"
+            decoding="async"
           />
         </div>
         <div class="mt-3 flex justify-center gap-2 overflow-x-auto" role="list">
@@ -30,7 +32,7 @@
             :aria-current="activeImage === img ? 'true' : undefined"
             @click="activeImage = img"
           >
-            <img :src="asset(img)" alt="" class="w-full h-full object-contain p-1" />
+            <img :src="asset(img)" alt="" class="w-full h-full object-contain p-1" loading="lazy" decoding="async" />
           </button>
         </div>
       </div>
@@ -140,13 +142,14 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import ProductCard from '@/components/ProductCard.vue'
 import { useProductStore } from '@/stores/productStore'
 import { useCartStore } from '@/stores/cartStore'
 import { asset } from '@/utils/asset'
 import { formatPrice } from '@/utils/money'
+import { applySeo, productJsonLd, setJsonLd, absoluteUrl } from '@/utils/seo'
 import { useToast } from 'vue-toastification'
 import { useContactStore } from '@/stores/contactStore'
 
@@ -195,9 +198,29 @@ watch(
     activeImage.value = value?.gallery?.[0] || value?.image || ''
     size.value = value?.sizes?.[0] || ''
     quantity.value = 1
+
+    if (!value) {
+      applySeo({ title: 'محصول پیدا نشد', noIndex: true, path: route.fullPath })
+      setJsonLd('product-jsonld', null)
+      return
+    }
+
+    const pagePath = `${import.meta.env.BASE_URL.replace(/\/$/, '')}${route.path}`
+    applySeo({
+      title: value.title,
+      description: value.description || `${value.title} — خرید از ایمن یاب`,
+      path: pagePath,
+      image: asset(value.image),
+      type: 'product',
+    })
+    setJsonLd('product-jsonld', productJsonLd(value, absoluteUrl(pagePath)))
   },
   { immediate: true },
 )
+
+onBeforeUnmount(() => {
+  setJsonLd('product-jsonld', null)
+})
 
 function add() {
   if (!product.value || outOfStock.value) {
@@ -208,4 +231,5 @@ function add() {
   cart.addToCart({ ...product.value, size: size.value, quantity: qty })
   toast.success('محصول به سبد اضافه شد')
 }
+
 </script>

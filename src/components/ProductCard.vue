@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { asset } from '@/utils/asset'
 import { formatPrice } from '@/utils/money'
 import { useCartStore } from '@/stores/cartStore'
@@ -13,8 +13,10 @@ const props = defineProps({
 const cart = useCartStore()
 const toast = useToast()
 const contact = useContactStore()
+const broken = ref(false)
 const outOfStock = computed(() => Number(props.product.stock) <= 0)
 const addLabel = computed(() => (outOfStock.value ? 'ناموجود' : 'افزودن به سبد'))
+const imageSrc = computed(() => (broken.value ? '' : asset(props.product.image)))
 
 function add() {
   if (outOfStock.value) {
@@ -28,6 +30,10 @@ function add() {
 function ask() {
   contact.openWidget(props.product)
 }
+
+function onImageError() {
+  broken.value = true
+}
 </script>
 
 <template>
@@ -35,10 +41,18 @@ function ask() {
     <router-link :to="`/products/${product.slug}`" class="group flex flex-col flex-1 min-h-0">
       <div class="product-well relative aspect-square overflow-hidden">
         <img
-          :src="asset(product.image)"
+          v-if="imageSrc"
+          :src="imageSrc"
           :alt="product.title"
-          class="h-full w-full object-contain p-3 sm:p-4 transition duration-200 group-hover:scale-105"
+          loading="lazy"
+          decoding="async"
+          class="h-full w-full object-contain p-3 sm:p-4 transition duration-200 group-hover:scale-[1.03]"
+          @error="onImageError"
         />
+        <div v-else class="product-well__fallback" aria-hidden="true">
+          <i class="fa-regular fa-image"></i>
+          <span>بدون تصویر</span>
+        </div>
         <span
           v-if="product.badge"
           class="absolute top-2 right-2 status-pill bg-ink text-white text-[10px]"
@@ -53,23 +67,40 @@ function ask() {
       </div>
     </router-link>
     <div class="flex gap-1.5 px-2.5 pb-2.5 sm:px-3 sm:pb-3">
-      <button class="card-action card-action-ghost flex-1" type="button" @click="ask">مشاوره</button>
       <button
-        class="card-action card-action-dark"
-        :class="outOfStock ? 'px-3' : 'card-action-icon'"
+        class="card-action card-action-dark flex-1"
         type="button"
         :disabled="outOfStock"
         :aria-label="addLabel"
         @click="add"
       >
         <span v-if="outOfStock">ناموجود</span>
-        <i v-else class="fa-solid fa-plus" aria-hidden="true"></i>
+        <span v-else class="inline-flex items-center gap-1.5">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          افزودن
+        </span>
       </button>
+      <button class="card-action card-action-ghost px-3" type="button" @click="ask">مشاوره</button>
     </div>
   </article>
 </template>
 
 <style scoped>
+.product-well__fallback {
+  display: grid;
+  place-content: center;
+  gap: 0.35rem;
+  height: 100%;
+  color: var(--color-ash);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.product-well__fallback i {
+  font-size: 1.35rem;
+  opacity: 0.55;
+}
+
 .card-action {
   min-height: 44px;
   border-radius: 999px;
@@ -87,7 +118,7 @@ function ask() {
 
 .card-action:hover:not(:disabled),
 .card-action:focus-visible:not(:disabled) {
-  transform: scale(1.06);
+  transform: scale(1.04);
 }
 
 .card-action:disabled {
@@ -122,8 +153,22 @@ function ask() {
 
 .card-action-icon {
   width: 44px;
+  height: 44px;
+  min-height: 44px;
   padding: 0;
   flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;
+}
+
+.card-action-icon i {
+  display: block;
+  font-size: 0.95rem;
+  line-height: 1;
+  width: 1em;
+  height: 1em;
+  text-align: center;
 }
 
 @media (prefers-reduced-motion: reduce) {

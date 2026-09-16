@@ -13,81 +13,68 @@
       <router-link to="/products" class="btn btn-primary">کاتالوگ</router-link>
     </div>
 
-    <template v-else>
-      <section class="buyer print:hidden">
-        <h2 class="font-bold mb-3">مشخصات خریدار روی فاکتور</h2>
-        <div class="grid sm:grid-cols-2 gap-3">
-          <input v-model="buyer.name" class="field" placeholder="نام مسئول خرید" />
-          <input v-model="buyer.company" class="field" placeholder="نام شرکت" />
-          <input v-model="buyer.phone" class="field" placeholder="تلفن" />
-          <input v-model="buyer.city" class="field" placeholder="شهر" />
-          <input v-model="buyer.address" class="field sm:col-span-2" placeholder="آدرس ارسال" />
+    <article v-else ref="sheet" class="sheet">
+      <header class="flex justify-between gap-4 border-b pb-4 mb-6">
+        <div>
+          <p class="text-xs tracking-[0.2em] text-ember mb-1">IMEN MAHDI</p>
+          <h1 class="text-2xl font-extrabold">پیش‌فاکتور</h1>
+          <p class="text-sm mt-1">ایمنی مهدی · تجهیزات حفاظت فردی و آتش‌نشانی</p>
+        </div>
+        <div class="text-left text-sm">
+          <p>شماره: {{ quoteId }}</p>
+          <p>تاریخ: {{ date }}</p>
+          <p>وضعیت: قبل از پرداخت</p>
+        </div>
+      </header>
+
+      <section class="grid sm:grid-cols-2 gap-4 mb-6 text-sm">
+        <div>
+          <h2 class="font-bold mb-1">خریدار / شرکت</h2>
+          <p>{{ buyer.name }}</p>
+          <p v-if="buyer.company">{{ buyer.company }}</p>
+          <p>{{ buyer.phone }}</p>
+          <p>{{ [buyer.city, buyer.address].filter(Boolean).join(' · ') }}</p>
+        </div>
+        <div>
+          <h2 class="font-bold mb-1">فروشنده</h2>
+          <p>فروشگاه ایمنی مهدی</p>
+          <p>۰۹۱۰۶۴۱۹۶۷۸</p>
+          <p>پرداخت پس از تایید این پیش‌فاکتور، کارت‌به‌کارت</p>
         </div>
       </section>
 
-      <article ref="sheet" class="sheet">
-        <header class="flex justify-between gap-4 border-b pb-4 mb-6">
-          <div>
-            <p class="text-xs tracking-[0.2em] text-ember mb-1">IMEN MAHDI</p>
-            <h1 class="text-2xl font-extrabold">پیش‌فاکتور</h1>
-            <p class="text-sm mt-1">ایمنی مهدی · تجهیزات حفاظت فردی و آتش‌نشانی</p>
-          </div>
-          <div class="text-left text-sm">
-            <p>شماره: {{ quoteId }}</p>
-            <p>تاریخ: {{ date }}</p>
-            <p>وضعیت: قبل از پرداخت</p>
-          </div>
-        </header>
+      <table>
+        <thead>
+          <tr>
+            <th>شرح کالا</th>
+            <th>سایز</th>
+            <th>تعداد</th>
+            <th>مبلغ واحد</th>
+            <th>جمع</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in cart.items" :key="item.id + item.size">
+            <td>{{ item.title }}</td>
+            <td>{{ item.size }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ formatPrice(item.price) }}</td>
+            <td>{{ formatPrice(item.price * item.quantity) }}</td>
+          </tr>
+        </tbody>
+      </table>
 
-        <section class="grid sm:grid-cols-2 gap-4 mb-6 text-sm">
-          <div>
-            <h2 class="font-bold mb-1">خریدار / شرکت</h2>
-            <p>{{ buyer.name || '—' }}</p>
-            <p v-if="buyer.company">{{ buyer.company }}</p>
-            <p>{{ buyer.phone || '—' }}</p>
-            <p>{{ [buyer.city, buyer.address].filter(Boolean).join(' · ') || '—' }}</p>
-          </div>
-          <div>
-            <h2 class="font-bold mb-1">فروشنده</h2>
-            <p>فروشگاه ایمنی مهدی</p>
-            <p>۰۹۱۰۶۴۱۹۶۷۸</p>
-            <p>پرداخت پس از تایید این پیش‌فاکتور، کارت‌به‌کارت</p>
-          </div>
-        </section>
-
-        <table>
-          <thead>
-            <tr>
-              <th>شرح کالا</th>
-              <th>سایز</th>
-              <th>تعداد</th>
-              <th>مبلغ واحد</th>
-              <th>جمع</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in cart.items" :key="item.id + item.size">
-              <td>{{ item.title }}</td>
-              <td>{{ item.size }}</td>
-              <td>{{ item.quantity }}</td>
-              <td>{{ formatPrice(item.price) }}</td>
-              <td>{{ formatPrice(item.price * item.quantity) }}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <footer class="mt-6 text-sm">
-          <p>تعداد اقلام: {{ cart.totalCount }}</p>
-          <p class="text-lg font-bold mt-2">مبلغ کل کالا: {{ formatPrice(cart.totalPrice) }} تومان</p>
-          <p class="mt-2 text-steel">هزینه ارسال بعد از انتخاب تهران یا شهرستان در تسویه مشخص می‌شود.</p>
-        </footer>
-      </article>
-    </template>
+      <footer class="mt-6 text-sm">
+        <p>تعداد اقلام: {{ cart.totalCount }}</p>
+        <p class="text-lg font-bold mt-2">مبلغ کل کالا: {{ formatPrice(cart.totalPrice) }} تومان</p>
+        <p class="mt-2 text-steel">هزینه ارسال بعد از انتخاب تهران یا شهرستان در تسویه مشخص می‌شود.</p>
+      </footer>
+    </article>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
 import { formatPrice } from '@/utils/money'
@@ -102,13 +89,13 @@ const busy = ref(false)
 const date = new Date().toLocaleDateString('fa-IR')
 const quoteId = quoteIdForCart(cart.items)
 
-const buyer = reactive({
-  name: auth.user?.name || '',
+const buyer = computed(() => ({
+  name: auth.user?.name || '—',
   company: auth.user?.company || '',
-  phone: auth.user?.phone || '',
+  phone: auth.user?.phone || '—',
   city: auth.user?.city || '',
   address: auth.user?.address || '',
-})
+}))
 
 function print() {
   window.print()
@@ -156,7 +143,6 @@ async function downloadPdf() {
   padding: 24px;
 }
 .toolbar,
-.buyer,
 .sheet {
   width: min(900px, 100%);
   margin-inline: auto;
@@ -166,18 +152,6 @@ async function downloadPdf() {
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
-}
-.buyer {
-  background: #fff;
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-.field {
-  width: 100%;
-  border: 1px solid #ddd4c8;
-  border-radius: 12px;
-  padding: 10px 12px;
 }
 .sheet {
   background: #fff;

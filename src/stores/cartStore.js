@@ -47,13 +47,22 @@ export const useCartStore = defineStore('cart', {
     updateQuantity(id, size, quantity) {
       const item = this.items.find((row) => row.id === id && row.size === size)
       if (!item) return
-      item.quantity = Math.max(1, quantity)
+      if (quantity <= 0) {
+        this.removeFromCart(id, size)
+        return
+      }
+      item.quantity = quantity
       this.persist()
     },
     changeQuantity(id, size, delta) {
       const item = this.items.find((row) => row.id === id && row.size === size)
       if (!item) return
-      item.quantity = Math.max(1, item.quantity + delta)
+      const next = item.quantity + delta
+      if (next <= 0) {
+        this.removeFromCart(id, size)
+        return
+      }
+      item.quantity = next
       this.persist()
     },
     removeFromCart(id, size) {

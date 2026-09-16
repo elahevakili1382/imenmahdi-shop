@@ -63,6 +63,26 @@ export const tehranSlots = [
 export const defaultShippingSettings = {
   tehranCourierPrice: 75000,
   tehranExpressPrice: 125000,
+  tehranSlots: tehranSlots.map((slot) => ({ ...slot })),
+}
+
+export function normalizeTehranSlots(slots) {
+  if (!Array.isArray(slots) || !slots.length) {
+    return tehranSlots.map((slot) => ({ ...slot }))
+  }
+  return slots
+    .map((slot, index) => {
+      const label = String(slot?.label || '').trim()
+      if (!label) return null
+      const id = String(slot?.id || '')
+        .trim()
+        .replace(/\s+/g, '-')
+      return {
+        id: id || `slot-${index + 1}`,
+        label,
+      }
+    })
+    .filter(Boolean)
 }
 
 export function withShippingSettings(settings = defaultShippingSettings) {
@@ -106,6 +126,6 @@ export function nextWorkingDays(count = 7) {
   return days
 }
 
-export function slotLabel(id) {
-  return tehranSlots.find((item) => item.id === id)?.label || ''
+export function slotLabel(id, slots = tehranSlots) {
+  return (slots || tehranSlots).find((item) => item.id === id)?.label || ''
 }

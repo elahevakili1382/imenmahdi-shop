@@ -1,68 +1,144 @@
 <template>
   <div class="dash-shell flex">
-    <aside class="dash-aside hidden lg:flex w-72 shrink-0 flex-col p-6">
-      <router-link to="/" class="mb-8">
-        <span class="block text-xs tracking-[0.18em] text-[#00E5FF]">IMEN MAHDI</span>
-        <span class="block text-lg font-semibold mt-2">داشبورد کنترل</span>
+    <aside class="dash-aside hidden lg:flex w-72 shrink-0 flex-col p-5">
+      <router-link to="/" class="mb-6 flex items-center gap-3 px-2">
+        <span class="grid h-10 w-10 place-items-center rounded-2xl bg-[var(--dash-primary-soft)] text-[var(--dash-primary)]">
+          <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+        </span>
+        <span>
+          <span class="block text-[11px] font-bold text-[var(--dash-primary)]">IMEN YAB</span>
+          <span class="block text-base font-extrabold mt-0.5">داشبورد فروش</span>
+        </span>
       </router-link>
-      <p class="dash-live mb-6">سیستم فعال</p>
-      <nav class="flex flex-col gap-1">
-        <router-link
-          v-for="link in links"
-          :key="link.to"
-          :to="link.to"
-          class="dash-nav-link"
-          :class="{ 'is-active': isActive(link) }"
-        >
-          <i :class="['fa-solid', link.icon]" aria-hidden="true"></i>
-          {{ link.label }}
-        </router-link>
+
+      <nav class="flex flex-col gap-0.5 overflow-y-auto pb-4 flex-1 min-h-0">
+        <template v-for="group in navGroups" :key="group.title">
+          <p v-if="group.title" class="dash-nav-group">{{ group.title }}</p>
+          <router-link
+            v-for="link in group.links"
+            :key="link.to"
+            :to="link.to"
+            class="dash-nav-link"
+            :class="{ 'is-active': isActive(link) }"
+          >
+            <i :class="['fa-solid', link.icon]" aria-hidden="true"></i>
+            {{ link.label }}
+          </router-link>
+        </template>
       </nav>
-      <button class="mt-auto btn btn-ghost" type="button" @click="logout">خروج</button>
+
+      <button class="mt-auto btn btn-ghost shrink-0" type="button" @click="logout">خروج از حساب</button>
     </aside>
 
     <div class="flex-1 min-w-0">
-      <header class="lg:hidden sticky top-0 z-30 flex items-center justify-between border-b border-[#2C2C2E] bg-[#1E1E1E] px-4 py-3">
-        <button class="btn btn-ghost min-h-10 px-3 text-sm" type="button" :aria-expanded="open" @click="open = true">
-          منو
+      <header
+        class="lg:hidden sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[var(--dash-line)] bg-white px-3 py-2.5"
+      >
+        <button
+          ref="menuBtn"
+          id="dash-menu-btn"
+          class="dash-icon-btn"
+          type="button"
+          aria-label="باز کردن منو"
+          :aria-expanded="open"
+          aria-controls="dash-mobile-nav"
+          @click="openDrawer"
+        >
+          <i class="fa-solid fa-bars" aria-hidden="true"></i>
         </button>
-        <span class="font-semibold">داشبورد</span>
-        <router-link to="/" class="text-sm text-[#98989D]">فروشگاه</router-link>
+        <div class="min-w-0 flex-1 text-center">
+          <p class="text-[11px] text-[var(--dash-muted)] leading-none">داشبورد</p>
+          <p class="font-extrabold text-sm truncate mt-1">{{ currentPageTitle }}</p>
+        </div>
+        <router-link to="/" class="dash-icon-btn text-[var(--dash-muted)]" aria-label="بازگشت به فروشگاه">
+          <i class="fa-solid fa-store" aria-hidden="true"></i>
+        </router-link>
       </header>
 
       <button
         v-if="open"
         class="dash-drawer-backdrop lg:hidden"
         type="button"
-        aria-label="بستن منو"
-        @click="open = false"
+        tabindex="-1"
+        aria-hidden="true"
+        @click="closeDrawer"
       />
-      <aside class="dash-drawer lg:hidden" :class="{ 'is-open': open }" :aria-hidden="!open" :inert="!open">
-        <div class="flex items-center justify-between mb-6">
+      <aside
+        id="dash-mobile-nav"
+        ref="drawerRef"
+        class="dash-drawer lg:hidden"
+        :class="{ 'is-open': open }"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dash-drawer-title"
+        :aria-hidden="!open"
+        :inert="!open"
+      >
+        <div class="flex items-center justify-between mb-4 shrink-0">
           <div>
-            <p class="text-xs tracking-[0.18em] text-[#00E5FF]">IMEN MAHDI</p>
-            <p class="font-semibold mt-1">داشبورد کنترل</p>
+            <p class="text-[11px] font-bold text-[var(--dash-primary)]">IMEN YAB</p>
+            <p id="dash-drawer-title" class="font-extrabold mt-1">داشبورد فروش</p>
           </div>
-          <button class="btn btn-ghost min-h-10 px-3 text-sm" type="button" @click="open = false">بستن</button>
+          <button
+            ref="closeBtn"
+            class="dash-icon-btn"
+            type="button"
+            aria-label="بستن منو"
+            @click="closeDrawer"
+          >
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
         </div>
-        <p class="dash-live mb-4">سیستم فعال</p>
-        <nav class="flex flex-col gap-1 overflow-y-auto">
+
+        <nav class="dash-drawer__nav" aria-label="منوی داشبورد">
+          <p class="dash-nav-group">دسترسی سریع</p>
           <router-link
-            v-for="link in links"
-            :key="link.to"
+            v-for="link in primaryLinks"
+            :key="`p-${link.to}`"
             :to="link.to"
             class="dash-nav-link"
             :class="{ 'is-active': isActive(link) }"
-            @click="open = false"
+            @click="closeDrawer"
           >
             <i :class="['fa-solid', link.icon]" aria-hidden="true"></i>
             {{ link.label }}
           </router-link>
+
+          <template v-if="moreGroups.length">
+            <button
+              class="dash-more-toggle"
+              type="button"
+              :aria-expanded="moreOpen"
+              @click="moreOpen = !moreOpen"
+            >
+              <span>بیشتر</span>
+              <i :class="['fa-solid', moreOpen ? 'fa-chevron-up' : 'fa-chevron-down']" aria-hidden="true"></i>
+            </button>
+            <div v-show="moreOpen" class="dash-more-panel">
+              <template v-for="group in moreGroups" :key="`m-${group.title}`">
+                <p v-if="group.title" class="dash-nav-group">{{ group.title }}</p>
+                <router-link
+                  v-for="link in group.links"
+                  :key="link.to"
+                  :to="link.to"
+                  class="dash-nav-link"
+                  :class="{ 'is-active': isActive(link) }"
+                  @click="closeDrawer"
+                >
+                  <i :class="['fa-solid', link.icon]" aria-hidden="true"></i>
+                  {{ link.label }}
+                </router-link>
+              </template>
+            </div>
+          </template>
         </nav>
-        <button class="mt-auto btn btn-ghost" type="button" @click="logout">خروج</button>
+
+        <button class="dash-drawer__logout btn btn-ghost shrink-0" type="button" @click="logout">
+          خروج از حساب
+        </button>
       </aside>
 
-      <main class="p-3 sm:p-8">
+      <main class="p-4 sm:p-7 lg:p-8">
         <RouterView />
       </main>
     </div>
@@ -70,48 +146,127 @@
 </template>
 
 <script setup>
-import '@fontsource/inter/400.css'
-import '@fontsource/inter/600.css'
 import '@fontsource/jetbrains-mono/700.css'
 import '@/assets/dashboard.css'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
+
 const open = ref(false)
+const moreOpen = ref(false)
+const menuBtn = ref(null)
+const closeBtn = ref(null)
+const drawerRef = ref(null)
 
-const links = computed(() => {
-  const base = [
-    { to: '/dashboard', label: 'نمای کلی', icon: 'fa-bolt', exact: true },
-    { to: '/account/orders', label: 'سفارش‌های من', icon: 'fa-bag-shopping' },
-    { to: '/account/profile', label: 'پروفایل و آدرس', icon: 'fa-user' },
-  ]
-  if (auth.isAdmin) {
-    base.push(
-      { to: '/dashboard/admin/products', label: 'محصولات', icon: 'fa-boxes-stacked' },
-      { to: '/dashboard/admin/orders', label: 'لیست سفارش‌ها', icon: 'fa-list' },
-      { to: '/dashboard/admin/receipts', label: 'بررسی رسیدها', icon: 'fa-receipt' },
-      { to: '/dashboard/admin/hero', label: 'هیرو صفحه اصلی', icon: 'fa-image' },
-      { to: '/dashboard/admin/guarantee', label: 'ارسال سریع صفحه اصلی', icon: 'fa-truck-fast' },
-      { to: '/dashboard/admin/shipping', label: 'قیمت ارسال تهران', icon: 'fa-motorcycle' },
-      { to: '/dashboard/admin/leads', label: 'شماره‌های تماس', icon: 'fa-phone' },
-      { to: '/dashboard/admin/reviews', label: 'نظر خریداران', icon: 'fa-star' },
-      { to: '/dashboard/admin/sms', label: 'پیامک‌های خودکار', icon: 'fa-comment-sms' },
-    )
+const PRIMARY_PATHS = new Set([
+  '/dashboard',
+  '/dashboard/admin/orders',
+  '/dashboard/admin/receipts',
+  '/dashboard/admin/products',
+  '/account/orders',
+  '/account/profile',
+])
+
+const navGroups = computed(() => {
+  if (!auth.isAdmin) {
+    return [
+      {
+        title: '',
+        links: [
+          { to: '/dashboard', label: 'نمای کلی', icon: 'fa-chart-line', exact: true },
+          { to: '/account/orders', label: 'سفارش‌های من', icon: 'fa-bag-shopping' },
+          { to: '/account/profile', label: 'پروفایل و آدرس', icon: 'fa-user' },
+        ],
+      },
+    ]
   }
-  return base
+
+  return [
+    {
+      title: 'مدیریت فروش',
+      links: [
+        { to: '/dashboard', label: 'داشبورد', icon: 'fa-chart-pie', exact: true },
+        { to: '/dashboard/admin/orders', label: 'مدیریت سفارش‌ها', icon: 'fa-clipboard-list' },
+        { to: '/dashboard/admin/receipts', label: 'بررسی رسیدها', icon: 'fa-receipt' },
+        { to: '/dashboard/admin/leads', label: 'مخاطبین / سرنخ‌ها', icon: 'fa-users' },
+        { to: '/dashboard/admin/shipping', label: 'نوع ارسال', icon: 'fa-truck' },
+      ],
+    },
+    {
+      title: 'محصولات',
+      links: [
+        { to: '/dashboard/admin/products', label: 'لیست محصولات', icon: 'fa-boxes-stacked' },
+        { to: '/dashboard/admin/reviews', label: 'نظر خریداران', icon: 'fa-star' },
+      ],
+    },
+    {
+      title: 'محتوای فروشگاه',
+      links: [
+        { to: '/dashboard/admin/hero', label: 'هیرو صفحه اصلی', icon: 'fa-image' },
+        { to: '/dashboard/admin/guarantee', label: 'بخش ارسال سریع', icon: 'fa-truck-fast' },
+      ],
+    },
+    {
+      title: 'ادمین',
+      links: [
+        { to: '/dashboard/admin/sms', label: 'پیامک خودکار', icon: 'fa-comment-sms' },
+        { to: '/dashboard/admin/settings', label: 'تنظیمات ورود', icon: 'fa-gear' },
+        { to: '/account/profile', label: 'پروفایل ادمین', icon: 'fa-user-shield' },
+      ],
+    },
+  ]
 })
 
-watch(open, (value) => {
+const flatLinks = computed(() => navGroups.value.flatMap((group) => group.links))
+
+const primaryLinks = computed(() => {
+  if (!auth.isAdmin) return flatLinks.value
+  return flatLinks.value.filter((link) => PRIMARY_PATHS.has(link.to) && link.to !== '/account/profile')
+})
+
+const moreGroups = computed(() => {
+  if (!auth.isAdmin) return []
+  const primary = new Set(primaryLinks.value.map((link) => link.to))
+  return navGroups.value
+    .map((group) => ({
+      ...group,
+      links: group.links.filter((link) => !primary.has(link.to)),
+    }))
+    .filter((group) => group.links.length)
+})
+
+const currentPageTitle = computed(() => {
+  const match = flatLinks.value.find((link) => isActive(link))
+  return match?.label || 'داشبورد'
+})
+
+const activeInMore = computed(() =>
+  moreGroups.value.some((group) => group.links.some((link) => isActive(link))),
+)
+
+watch(
+  () => [route.path, activeInMore.value],
+  () => {
+    if (activeInMore.value) moreOpen.value = true
+  },
+  { immediate: true },
+)
+
+watch(open, async (value) => {
   document.body.style.overflow = value ? 'hidden' : ''
+  if (value) {
+    if (activeInMore.value) moreOpen.value = true
+    await nextTick()
+    closeBtn.value?.focus()
+  } else {
+    await nextTick()
+    menuBtn.value?.focus()
+  }
 })
-
-function onKey(event) {
-  if (event.key === 'Escape') open.value = false
-}
 
 watch(
   () => route.path,
@@ -119,6 +274,47 @@ watch(
     open.value = false
   },
 )
+
+function openDrawer() {
+  open.value = true
+}
+
+function closeDrawer() {
+  open.value = false
+}
+
+function getFocusable() {
+  if (!drawerRef.value) return []
+  return [...drawerRef.value.querySelectorAll('a[href], button:not([disabled])')].filter(
+    (el) => !el.disabled && el.getClientRects().length > 0,
+  )
+}
+
+function onKey(event) {
+  if (!open.value) return
+
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    closeDrawer()
+    return
+  }
+
+  if (event.key !== 'Tab') return
+
+  const list = getFocusable()
+  if (!list.length) return
+
+  const first = list[0]
+  const last = list[list.length - 1]
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
 
 if (typeof window !== 'undefined') {
   window.addEventListener('keydown', onKey)

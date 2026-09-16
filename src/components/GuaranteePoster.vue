@@ -24,7 +24,7 @@ const titleLines = computed(() => String(poster.value.title || '').split(/،\s*|
           :grain-mixer="0.16"
           :grain-overlay="0.18"
         />
-        <img :src="asset(poster.image)" :alt="poster.title" />
+        <img :src="asset(poster.image)" :alt="poster.title" loading="lazy" decoding="async" />
         <div class="poster-photo-fade" />
       </div>
 

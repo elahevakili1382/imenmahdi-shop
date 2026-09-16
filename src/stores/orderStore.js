@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { uniqueDocId } from '@/utils/ids'
+import { uniqueOrderId } from '@/utils/ids'
 import { shopBank } from '@/data/bank'
 import { useShippingStore } from '@/stores/shippingStore'
 import { ORDER_STATUS } from '@/data/orderStatus'
@@ -11,9 +11,7 @@ export { ORDER_STATUS } from '@/data/orderStatus'
 const STORAGE_KEY = 'imenmahdi-orders'
 
 function nextOrderId(orders) {
-  let id = uniqueDocId('IM')
-  while (orders.some((order) => order.id === id)) id = uniqueDocId('IM')
-  return id
+  return uniqueOrderId(orders.map((order) => order.id))
 }
 
 function readOrders() {
@@ -124,10 +122,14 @@ export const useOrderStore = defineStore('orders', {
       this.persist()
       return order
     },
-    async applyReceipt(orderId, { dataUrl, name, botResult }) {
+    async applyReceipt(orderId, { dataUrl, name, declaredAmount, last4, botResult }) {
       const auth = useAuthStore()
       if (auth.online) {
-        const { data } = await api.post(`/orders/${orderId}/receipt`, { dataUrl, name, botResult })
+        const { data } = await api.post(
+          `/orders/${orderId}/receipt`,
+          { dataUrl, name, declaredAmount, last4 },
+          { timeout: 60000 },
+        )
         this.orders = replaceList(this.orders, data)
         this.persist()
         return data
@@ -139,11 +141,18 @@ export const useOrderStore = defineStore('orders', {
       order.receiptName = name
       order.receiptFingerprint = botResult?.fingerprint || ''
       order.botResult = botResult
-      if (botResult?.decision === 'approved') order.status = ORDER_STATUS.PREPARING
-      else if (botResult?.decision === 'rejected') order.status = ORDER_STATUS.REJECTED
+      if (botResult?.decision === 'rejected') order.status = ORDER_STATUS.REJECTED
       else order.status = ORDER_STATUS.AWAITING_REVIEW
       this.persist()
       return order
+    },
+    async recheckReceipt(orderId) {
+      const auth = useAuthStore()
+      if (!auth.online) throw new Error('برای بررسی مجدد بات، API باید روشن باشد')
+      const { data } = await api.post(`/orders/${orderId}/receipt/recheck`, {}, { timeout: 60000 })
+      this.orders = replaceList(this.orders, data)
+      this.persist()
+      return data
     },
     async reviewOrder(orderId, { approved, adminNote }) {
       const auth = useAuthStore()

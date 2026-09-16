@@ -52,7 +52,7 @@ body {
   min-height: 100vh;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   min-width: 0;
 }
 
@@ -164,11 +164,12 @@ textarea {
 }
 
 .product-well {
-  background: var(--color-sand);
+  background: #ffffff;
+  border-bottom: 1px solid var(--color-line);
 }
 
 .product-well img {
-  mix-blend-mode: multiply;
+  background: #ffffff;
 }
 
 .status-pill {
@@ -188,6 +189,83 @@ textarea {
   background: var(--color-bone);
 }
 
+/* vue-toastification — Vazirmatn + icons */
+.Vue-Toastification__container {
+  font-family: 'Vazirmatn Variable', Vazirmatn, Tahoma, sans-serif;
+  z-index: 9999;
+}
+
+.Vue-Toastification__toast,
+.imen-toast {
+  font-family: 'Vazirmatn Variable', Vazirmatn, Tahoma, sans-serif !important;
+  direction: rtl;
+  text-align: right;
+  border-radius: 14px !important;
+  min-height: 52px;
+  padding: 12px 14px !important;
+  box-shadow: 0 12px 28px rgba(12, 14, 18, 0.14) !important;
+  gap: 10px;
+}
+
+.Vue-Toastification__toast-body,
+.imen-toast__body {
+  font-family: 'Vazirmatn Variable', Vazirmatn, Tahoma, sans-serif !important;
+  font-size: 0.9rem !important;
+  font-weight: 600;
+  line-height: 1.55;
+  padding: 0 !important;
+}
+
+.Vue-Toastification__icon {
+  margin: 0 0 0 10px !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  flex-shrink: 0;
+}
+
+.Vue-Toastification__close-button,
+.imen-toast__close {
+  font-family: inherit !important;
+  opacity: 0.7;
+}
+
+.Vue-Toastification__toast--success {
+  background: #ecfdf5 !important;
+  color: #166534 !important;
+  border-inline-start: 4px solid #16a34a;
+}
+
+.Vue-Toastification__toast--error {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  border-inline-start: 4px solid #dc2626;
+}
+
+.Vue-Toastification__toast--info {
+  background: #eef2ff !important;
+  color: #4338ca !important;
+  border-inline-start: 4px solid #6366f1;
+}
+
+.Vue-Toastification__toast--warning {
+  background: #fffbeb !important;
+  color: #b45309 !important;
+  border-inline-start: 4px solid #f59e0b;
+}
+
+@media (max-width: 639px) {
+  .Vue-Toastification__container {
+    padding: 10px !important;
+    width: 100% !important;
+  }
+
+  .Vue-Toastification__toast,
+  .imen-toast {
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -197,3 +275,4 @@ textarea {
     scroll-behavior: auto !important;
   }
 }
+

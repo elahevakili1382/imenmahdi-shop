@@ -176,6 +176,7 @@ async function submit(event) {
   isolation: isolate;
   overflow: hidden;
   margin-top: 4rem;
+  padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
   color: #f4efe7;
   background:
     radial-gradient(circle at 8% 0%, rgba(196, 92, 38, 0.22), transparent 34%),
@@ -538,6 +539,12 @@ async function submit(event) {
   .im-email {
     background: #171b21;
     backdrop-filter: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .im-footer {
+    padding-bottom: 0;
   }
 }
 </style>

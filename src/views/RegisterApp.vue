@@ -1,14 +1,12 @@
 <template>
-  <section class="container-shop py-16 max-w-md">
-    <h1 class="text-3xl font-bold mb-2">ثبت‌نام</h1>
-    <p class="text-steel mb-6">شماره موبایل خودتان را وارد کنید و یک رمز بسازید. پیامک لازم نیست.</p>
-    <form class="surface-card p-6 space-y-4" @submit.prevent="submit">
-      <div class="flex gap-4 text-sm">
-        <label class="inline-flex items-center gap-2">
+  <AuthShell title="ثبت‌نام">
+    <form class="auth-form surface-card" @submit.prevent="submit">
+      <div class="auth-radio-row">
+        <label class="auth-radio">
           <input v-model="title" type="radio" value="خانم" />
           خانم
         </label>
-        <label class="inline-flex items-center gap-2">
+        <label class="auth-radio">
           <input v-model="title" type="radio" value="آقا" />
           آقا
         </label>
@@ -16,8 +14,7 @@
       <input v-model="name" class="field" placeholder="نام و نام خانوادگی" required />
       <input
         v-model="phone"
-        class="field"
-        dir="ltr"
+        class="field field-phone"
         inputmode="numeric"
         maxlength="11"
         placeholder="شماره موبایل"
@@ -31,25 +28,26 @@
         minlength="8"
         required
       />
-      <p class="text-xs text-steel leading-6">{{ PASSWORD_HINT }}</p>
-      <ul v-if="password" class="text-xs space-y-1">
-        <li v-for="item in checks" :key="item.label" :class="item.ok ? 'text-green-700' : 'text-steel'">
+      <p class="auth-hint">{{ PASSWORD_HINT }}</p>
+      <ul v-if="password" class="auth-checks">
+        <li v-for="item in checks" :key="item.label" :class="item.ok ? 'is-ok' : ''">
           {{ item.ok ? '✓' : '○' }} {{ item.label }}
         </li>
       </ul>
-      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
-      <button class="btn btn-primary w-full" type="submit">ساخت حساب</button>
+      <p v-if="error" class="auth-error">{{ error }}</p>
+      <button class="btn btn-primary w-full auth-submit" type="submit">ساخت حساب</button>
     </form>
-    <p class="text-sm mt-4">
+    <template #footer>
       قبلاً ثبت‌نام کرده‌اید؟
       <router-link to="/login" class="text-ember">ورود</router-link>
-    </p>
-  </section>
+    </template>
+  </AuthShell>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import AuthShell from '@/components/AuthShell.vue'
 import { useAuthStore } from '@/stores/authStore'
 import { PASSWORD_HINT } from '@/utils/password'
 
@@ -96,10 +94,64 @@ async function submit() {
 </script>
 
 <style scoped>
+.auth-form {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
 .field {
   width: 100%;
   border: 1px solid #ddd4c8;
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.875rem;
+}
+
+.field-phone {
+  direction: rtl;
+  text-align: right;
+}
+
+.auth-radio-row {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8125rem;
+}
+
+.auth-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.auth-hint {
+  margin: 0;
+  color: var(--color-ash);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.auth-checks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  color: var(--color-ash);
+}
+
+.auth-checks .is-ok {
+  color: #15803d;
+}
+
+.auth-error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 0.8125rem;
+}
+
+.auth-submit {
+  min-height: 42px;
+  font-size: 0.875rem;
 }
 </style>

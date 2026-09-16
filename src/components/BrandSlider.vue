@@ -81,7 +81,7 @@ onBeforeUnmount(() => {
         >
           <SwiperSlide v-for="brand in brands" :key="brand.name">
             <figure class="brand-card">
-              <img :src="asset(brand.logo)" :alt="brand.name" />
+              <img :src="asset(brand.logo)" :alt="brand.name" loading="lazy" decoding="async" />
             </figure>
           </SwiperSlide>
         </Swiper>
@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
 }
 
 .brand-viewport :deep(.swiper-slide) {
-  width: min(240px, 78vw);
+  width: min(168px, 58vw);
   height: auto;
 }
 
@@ -142,7 +142,7 @@ onBeforeUnmount(() => {
 
 .brand-arrow {
   position: absolute;
-  top: 6.75rem;
+  top: 4.75rem;
   z-index: 4;
   display: grid;
   place-items: center;
@@ -169,18 +169,18 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   overflow: hidden;
-  height: 13.5rem;
+  height: 8.5rem;
   margin: 0;
-  padding: 1.6rem 1.35rem;
-  border-radius: 22px;
+  padding: 1rem 0.85rem;
+  border-radius: 18px;
   background: #fff;
-  box-shadow: 0 10px 28px rgba(12, 14, 18, 0.06);
+  box-shadow: 0 8px 20px rgba(12, 14, 18, 0.05);
 }
 
 .brand-card img {
-  width: 100%;
-  max-width: 196px;
-  max-height: 5.5rem;
+  width: auto;
+  max-width: 120px;
+  max-height: 3.25rem;
   object-fit: contain;
   transition: transform 360ms ease;
 }
@@ -191,40 +191,40 @@ onBeforeUnmount(() => {
 
 @media (min-width: 640px) {
   .brand-viewport :deep(.swiper-slide) {
-    width: 280px;
+    width: 196px;
   }
 
   .brand-arrow {
-    top: 7.5rem;
+    top: 5.25rem;
   }
 
   .brand-card {
-    height: 15rem;
+    height: 9.5rem;
   }
 
   .brand-card img {
-    max-width: 216px;
-    max-height: 6rem;
+    max-width: 132px;
+    max-height: 3.5rem;
   }
 }
 
 @media (min-width: 1024px) {
   .brand-viewport :deep(.swiper-slide) {
-    width: 320px;
+    width: 220px;
   }
 
   .brand-arrow {
-    top: 8.25rem;
+    top: 5.75rem;
   }
 
   .brand-card {
-    height: 16.5rem;
-    padding: 1.9rem;
+    height: 10rem;
+    padding: 1.1rem;
   }
 
   .brand-card img {
-    max-width: 236px;
-    max-height: 6.75rem;
+    max-width: 144px;
+    max-height: 3.75rem;
   }
 }
 

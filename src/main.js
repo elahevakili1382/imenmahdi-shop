@@ -3,7 +3,10 @@ import './assets/tailwind.css'
 import './assets/main.css'
 import 'primeicons/primeicons.css'
 import 'swiper/css'
-import '@fortawesome/fontawesome-free/css/all.min.css'
+import '@fortawesome/fontawesome-free/css/fontawesome.min.css'
+import '@fortawesome/fontawesome-free/css/solid.min.css'
+import '@fortawesome/fontawesome-free/css/regular.min.css'
+import '@fortawesome/fontawesome-free/css/brands.min.css'
 import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
 
@@ -43,7 +46,13 @@ app.use(MotionPlugin, {
 })
 app.use(Toast, {
   position: 'top-right',
-  timeout: 3000,
+  timeout: 3200,
+  closeOnClick: true,
+  icon: true,
+  rtl: true,
+  toastClassName: 'imen-toast',
+  bodyClassName: 'imen-toast__body',
+  closeButtonClassName: 'imen-toast__close',
 })
 app.use(router)
 

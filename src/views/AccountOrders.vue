@@ -37,6 +37,13 @@
           <router-link :to="`/orders/${order.id}`" class="btn btn-dark min-h-10 text-sm">
             پیگیری سفارش
           </router-link>
+          <router-link
+            v-if="needsPay(order)"
+            :to="`/orders/${order.id}/pay`"
+            class="btn btn-primary min-h-10 text-sm"
+          >
+            پرداخت / رسید
+          </router-link>
           <router-link :to="`/invoice/${order.id}`" class="btn btn-ghost min-h-10 text-sm">
             چاپ فاکتور
           </router-link>
@@ -102,6 +109,14 @@ function draftOf(id) {
 
 function canReview(order) {
   return reviewable.has(order.status)
+}
+
+function needsPay(order) {
+  return (
+    order.status === ORDER_STATUS.AWAITING_RECEIPT ||
+    order.status === ORDER_STATUS.REJECTED ||
+    order.status === ORDER_STATUS.AWAITING_REVIEW
+  )
 }
 
 function statusTone(status) {

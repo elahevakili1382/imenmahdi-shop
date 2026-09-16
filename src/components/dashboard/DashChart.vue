@@ -13,8 +13,8 @@ let chart
 
 function areaFill(ctx) {
   const gradient = ctx.createLinearGradient(0, 0, 0, 256)
-  gradient.addColorStop(0, 'rgba(48, 209, 88, 0.35)')
-  gradient.addColorStop(1, 'rgba(0, 229, 255, 0.02)')
+  gradient.addColorStop(0, 'rgba(27, 143, 90, 0.32)')
+  gradient.addColorStop(1, 'rgba(27, 143, 90, 0.02)')
   return gradient
 }
 
@@ -26,7 +26,7 @@ function withTheme(data, ctx) {
       fill: true,
       tension: 0.4,
       borderWidth: 2,
-      borderColor: '#00E5FF',
+      borderColor: '#1B8F5A',
       pointRadius: 0,
       pointHoverRadius: 4,
       ...dataset,
@@ -47,14 +47,20 @@ function render() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          labels: { color: '#98989D', boxWidth: 10, font: { family: 'Inter, Vazirmatn Variable, sans-serif' } },
+          display: false,
+          labels: {
+            color: '#64748B',
+            boxWidth: 10,
+            font: { family: 'Vazirmatn Variable, Vazirmatn, sans-serif' },
+          },
         },
         tooltip: {
-          backgroundColor: '#1E1E1E',
-          borderColor: '#2C2C2E',
+          backgroundColor: '#ffffff',
+          borderColor: '#E8ECEF',
           borderWidth: 1,
-          titleColor: '#FFFFFF',
-          bodyColor: '#98989D',
+          titleColor: '#0F172A',
+          bodyColor: '#64748B',
+          padding: 10,
         },
       },
       ...(props.type === 'doughnut'
@@ -62,13 +68,13 @@ function render() {
         : {
             scales: {
               x: {
-                ticks: { color: '#98989D' },
-                grid: { color: '#2C2C2E' },
+                ticks: { color: '#64748B' },
+                grid: { display: false },
                 border: { display: false },
               },
               y: {
-                ticks: { color: '#98989D' },
-                grid: { color: '#2C2C2E' },
+                ticks: { color: '#64748B' },
+                grid: { color: '#EEF2F4' },
                 border: { display: false },
                 beginAtZero: true,
               },

@@ -7,7 +7,7 @@
     <div v-if="!rows.length" class="dash-card text-sm text-slate-400">هنوز پیامکی ثبت نشده است.</div>
     <article v-for="row in rows" :key="row.id" class="dash-card mb-3 text-sm">
       <div class="flex flex-wrap justify-between gap-2">
-        <p class="dash-mono text-[#00E5FF]">{{ row.phone }}</p>
+        <p class="dash-mono text-[var(--dash-primary)]">{{ row.phone }}</p>
         <p class="text-slate-400">{{ row.status }} · {{ row.event }}</p>
       </div>
       <pre class="mt-3 whitespace-pre-wrap text-slate-200 font-[inherit]">{{ row.message }}</pre>

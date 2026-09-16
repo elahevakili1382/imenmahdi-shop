@@ -7,6 +7,8 @@
           class="w-full h-full object-cover"
           :style="`object-position: ${slide.position}`"
           alt="Slide Image"
+          loading="lazy"
+          decoding="async"
         />
         <div
           class="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center text-white p-4"

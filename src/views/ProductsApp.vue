@@ -1,12 +1,23 @@
 <template>
-  <section class="container-shop py-8 sm:py-10">
-    <div class="mb-6 sm:mb-8">
-      <p class="text-sm text-ember">کاتالوگ</p>
-      <h1 class="text-3xl font-bold">همه تجهیزات</h1>
-      <p class="text-sm text-steel mt-2">
-        <template v-if="query">نتایج جستجو برای «{{ query }}» · </template>
-        {{ visible.length }} کالا
-      </p>
+  <section class="container-shop catalog-page py-8 sm:py-10">
+    <div class="mb-6 sm:mb-8 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <p class="text-sm text-ember">کاتالوگ</p>
+        <h1 class="text-3xl font-bold">همه تجهیزات</h1>
+        <p class="text-sm text-steel mt-2">
+          <template v-if="query">نتایج جستجو برای «{{ query }}» · </template>
+          {{ visible.length }} کالا
+        </p>
+      </div>
+      <label class="catalog-sort">
+        <span class="sr-only">مرتب‌سازی</span>
+        <select v-model="sort" class="field !py-2.5 !min-h-11">
+          <option value="featured">پیشنهادی</option>
+          <option value="price-asc">ارزان‌ترین</option>
+          <option value="price-desc">گران‌ترین</option>
+          <option value="stock">بیشترین موجودی</option>
+        </select>
+      </label>
     </div>
 
     <div class="lg:hidden mb-4">
@@ -15,8 +26,23 @@
       </button>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-8">
-      <div class="lg:sticky lg:top-24 lg:self-start" :class="filtersOpen ? 'block' : 'hidden lg:block'">
+    <div class="catalog-layout">
+      <div class="catalog-products">
+        <div
+          v-if="visible.length"
+          class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4 xl:gap-5"
+        >
+          <ProductCard v-for="product in visible" :key="product.id" :product="product" />
+        </div>
+        <p v-else class="text-steel py-16 text-center">
+          {{ query ? `برای «${query}» کالایی پیدا نشد.` : 'با این فیلتر محصولی نیست. فیلتر را عوض کنید.' }}
+        </p>
+      </div>
+
+      <div
+        class="catalog-filters lg:sticky lg:top-24 lg:self-start"
+        :class="filtersOpen ? 'block' : 'hidden lg:block'"
+      >
         <ProductFilters
           :selected-categories="selectedCats"
           :selected-sizes="selectedSizes"
@@ -31,15 +57,6 @@
           @update-price="setPrice"
           @clear="clearFilters"
         />
-      </div>
-
-      <div>
-        <div v-if="visible.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-          <ProductCard v-for="product in visible" :key="product.id" :product="product" />
-        </div>
-        <p v-else class="text-steel py-16 text-center">
-          {{ query ? `برای «${query}» کالایی پیدا نشد.` : 'با این فیلتر محصولی نیست. فیلتر را عوض کنید.' }}
-        </p>
       </div>
     </div>
   </section>
@@ -56,6 +73,7 @@ const store = useProductStore()
 const route = useRoute()
 const router = useRouter()
 const filtersOpen = ref(false)
+const sort = ref('featured')
 
 const query = computed(() => String(route.query.q || ''))
 const selectedCats = computed(() => listQuery('cats', 'cat'))
@@ -77,7 +95,7 @@ const availableSizes = computed(() => uniqueOf(store.products.flatMap((item) => 
 const availableColors = computed(() => uniqueOf(store.products.flatMap((item) => item.colors || [])))
 
 const visible = computed(() => {
-  let list = query.value ? store.search(query.value) : store.products
+  let list = query.value ? store.search(query.value) : [...store.products]
   if (selectedCats.value.length) {
     list = list.filter((item) =>
       selectedCats.value.some(
@@ -91,7 +109,14 @@ const visible = computed(() => {
   if (selectedColors.value.length) {
     list = list.filter((item) => (item.colors || []).some((color) => selectedColors.value.includes(color)))
   }
-  return list.filter((item) => item.price >= price.value.min && item.price <= price.value.max)
+  list = list.filter((item) => item.price >= price.value.min && item.price <= price.value.max)
+
+  if (sort.value === 'price-asc') list.sort((a, b) => a.price - b.price)
+  else if (sort.value === 'price-desc') list.sort((a, b) => b.price - a.price)
+  else if (sort.value === 'stock') list.sort((a, b) => Number(b.stock || 0) - Number(a.stock || 0))
+  else list.sort((a, b) => Number(Boolean(b.hero || b.popular)) - Number(Boolean(a.hero || a.popular)))
+
+  return list
 })
 
 function listQuery(...keys) {
@@ -142,3 +167,26 @@ function clearFilters() {
   router.replace({ query: next })
 }
 </script>
+
+<style scoped>
+.catalog-page {
+  max-width: 1320px;
+}
+
+.catalog-layout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.catalog-sort {
+  min-width: 11rem;
+}
+
+@media (min-width: 1024px) {
+  .catalog-layout {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 2rem;
+    align-items: start;
+  }
+}
+</style>

@@ -34,7 +34,7 @@
         <tbody>
           <template v-for="order in filtered" :key="order.id">
             <tr>
-              <td class="dash-mono whitespace-nowrap text-[#00E5FF]">{{ order.id }}</td>
+              <td class="dash-mono whitespace-nowrap text-[var(--dash-primary)]">{{ order.id }}</td>
               <td class="whitespace-nowrap">{{ order.customerName || '—' }}</td>
               <td>
                 <select
@@ -97,11 +97,12 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useOrderStore } from '@/stores/orderStore'
+import { useShippingStore } from '@/stores/shippingStore'
 import { statusLabel } from '@/data/orderStatus'
-import { tehranSlots } from '@/data/shipping'
 import { formatPrice } from '@/utils/money'
 
 const orders = useOrderStore()
+const shipping = useShippingStore()
 const query = ref('')
 const status = ref('all')
 const openId = ref('')
@@ -136,7 +137,7 @@ function formatDate(value) {
 }
 
 function slotLabel(id) {
-  return tehranSlots.find((slot) => slot.id === id)?.label || id || '—'
+  return shipping.slotLabel(id) || id || '—'
 }
 </script>
 

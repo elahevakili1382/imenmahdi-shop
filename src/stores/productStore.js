@@ -5,6 +5,42 @@ import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/authStore'
 
 const STORAGE_KEY = 'imenmahdi-products'
+const CATALOG_EPOCH_KEY = 'imenmahdi-catalog-epoch'
+/** Bump to force-drop bad local extras (screenshot / wrong-category imports). */
+const CATALOG_EPOCH = '3'
+
+const BROKEN_CATALOG_NEW_PREFIXES = [
+  'p-patan',
+  'p-safety-slipon',
+  'p-aghanezhad',
+  'p-farzin',
+  'p-bump-cap',
+  'p-polo',
+]
+
+function isBrokenCatalogNewProduct(product) {
+  const id = String(product?.id || '')
+  if (BROKEN_CATALOG_NEW_PREFIXES.some((prefix) => id.startsWith(prefix))) return true
+  const blob = JSON.stringify(product || {})
+  return blob.includes('images/catalog-new/') || blob.includes('catalog-new')
+}
+
+function purgeBrokenStorageOnce() {
+  try {
+    if (localStorage.getItem(CATALOG_EPOCH_KEY) === CATALOG_EPOCH) return
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null')
+    if (Array.isArray(saved) && saved.length) {
+      const cleaned = saved.filter((item) => !isBrokenCatalogNewProduct(item))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned))
+    }
+    localStorage.setItem(CATALOG_EPOCH_KEY, CATALOG_EPOCH)
+  } catch {
+    localStorage.removeItem(STORAGE_KEY)
+    localStorage.setItem(CATALOG_EPOCH_KEY, CATALOG_EPOCH)
+  }
+}
+
+purgeBrokenStorageOnce()
 
 function withSlugs(product) {
   const source = catalog.find((item) => item.id === product.id)
@@ -36,8 +72,15 @@ function readProducts() {
         sku: item.sku,
       }),
     )
-    const extras = saved.filter((item) => !catalog.some((row) => row.id === item.id)).map(withSlugs)
-    return [...merged, ...extras]
+    const extras = saved
+      .filter((item) => !catalog.some((row) => row.id === item.id))
+      .filter((item) => !isBrokenCatalogNewProduct(item))
+      .map(withSlugs)
+    const next = [...merged, ...extras]
+    if (saved.some(isBrokenCatalogNewProduct) || saved.length !== next.length) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+    }
+    return next
   } catch {
     return fresh
   }
@@ -73,10 +116,12 @@ export const useProductStore = defineStore('product', {
   },
   actions: {
     persist() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.products))
+      const cleaned = this.products.filter((item) => !isBrokenCatalogNewProduct(item))
+      this.products = cleaned
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned))
       const auth = useAuthStore()
       if (auth.online && auth.isAdmin) {
-        api.put('/products', this.products).catch(() => {})
+        api.put('/products', cleaned).catch(() => {})
       }
     },
     async hydrate() {
@@ -96,7 +141,10 @@ export const useProductStore = defineStore('product', {
               sku: item.sku,
             }),
           )
-          const extras = data.filter((item) => !catalog.some((row) => row.id === item.id)).map(withSlugs)
+          const extras = data
+            .filter((item) => !catalog.some((row) => row.id === item.id))
+            .filter((item) => !isBrokenCatalogNewProduct(item))
+            .map(withSlugs)
           this.products = [...merged, ...extras]
           localStorage.setItem(STORAGE_KEY, JSON.stringify(this.products))
         }
@@ -116,6 +164,7 @@ export const useProductStore = defineStore('product', {
         slug: payload.slug || slugify(payload.title),
         id: payload.id || `p-${Date.now()}`,
       })
+      if (isBrokenCatalogNewProduct(next)) return null
       if (!next.gallery?.length && next.image) next.gallery = [next.image]
       const index = this.products.findIndex((item) => item.id === next.id)
       if (index >= 0) this.products[index] = { ...this.products[index], ...next }
@@ -130,6 +179,7 @@ export const useProductStore = defineStore('product', {
     resetCatalog() {
       this.products = catalog.map((item) => ({ ...item }))
       localStorage.removeItem(STORAGE_KEY)
+      localStorage.setItem(CATALOG_EPOCH_KEY, CATALOG_EPOCH)
     },
   },
 })

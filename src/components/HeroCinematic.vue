@@ -64,6 +64,9 @@ onBeforeUnmount(() => {
         :alt="slide.headline"
         class="hero-frame absolute inset-0 h-full w-full object-cover"
         :class="[slide.focus, i === index ? 'is-active' : 'is-idle']"
+        :loading="i === 0 ? 'eager' : 'lazy'"
+        :fetchpriority="i === 0 ? 'high' : 'low'"
+        decoding="async"
       />
       <div class="absolute inset-0 bg-gradient-to-l from-night via-night/55 to-night/10" />
       <div class="absolute inset-0 bg-gradient-to-t from-night via-transparent to-night/40" />

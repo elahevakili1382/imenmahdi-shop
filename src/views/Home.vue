@@ -2,13 +2,29 @@
   <div>
     <HeroCinematic />
 
+    <section class="trust-strip" aria-label="مزایای خرید">
+      <div class="container-shop trust-strip__grid">
+        <div v-for="item in trustPoints" :key="item.title" class="trust-strip__item">
+          <span class="trust-strip__icon" aria-hidden="true">
+            <i :class="item.icon"></i>
+          </span>
+          <div>
+            <p class="font-bold text-sm">{{ item.title }}</p>
+            <p class="text-xs text-steel mt-0.5 leading-5">{{ item.text }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="container-shop py-8 sm:py-12">
       <div class="flex flex-wrap items-end justify-between gap-3 mb-5 sm:mb-7">
         <div>
           <p class="kicker mb-2" v-fade-up>دسته‌بندی</p>
-          <h2 class="section-title" v-fade-up>برای خط تولید و عملیات</h2>
+          <h2 class="section-title" v-fade-up>انتخاب دسته تجهیزات</h2>
         </div>
-        <router-link to="/products" class="text-sm text-ember">همه محصولات</router-link>
+        <router-link to="/products" class="text-sm text-ember min-h-11 inline-flex items-center">
+          همه محصولات
+        </router-link>
       </div>
       <div
         class="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory overscroll-x-contain sm:grid sm:grid-cols-3 sm:overflow-hidden lg:grid-cols-5"
@@ -33,59 +49,28 @@
     </section>
 
     <section class="container-shop py-8 sm:py-10">
-      <div class="mb-5 sm:mb-8 max-w-2xl">
-        <p class="kicker mb-2" v-fade-up>مسیر خرید</p>
-        <h2 class="section-title" v-fade-up>از مشاوره تا ارسال تهران و شهرستان</h2>
+      <div class="mb-5 sm:mb-7 flex flex-wrap items-end justify-between gap-3">
+        <div class="max-w-2xl">
+          <p class="kicker mb-2" v-fade-up>منتخب</p>
+          <h2 class="section-title" v-fade-up>محصولات آماده سفارش</h2>
+        </div>
+        <router-link to="/products" class="text-sm text-ember min-h-11 inline-flex items-center">
+          مشاهده کاتالوگ
+        </router-link>
       </div>
-      <ol
-        class="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory overscroll-x-contain sm:grid sm:grid-cols-2 sm:overflow-hidden lg:grid-cols-4"
-      >
-        <li
-          v-for="(step, i) in steps"
-          :key="step.title"
-          class="surface-card relative flex w-[220px] shrink-0 snap-start flex-col p-4 min-h-0 sm:w-auto sm:p-5"
-        >
-          <span
-            class="mb-3 grid h-10 w-10 place-items-center rounded-2xl bg-sand text-ember"
-            aria-hidden="true"
-          >
-            <i :class="step.icon" aria-hidden="true"></i>
-          </span>
-          <p class="text-[11px] text-copper mb-1">گام {{ step.kicker }}</p>
-          <h3 class="font-bold mb-1 text-sm sm:text-base">{{ step.title }}</h3>
-          <p class="text-xs sm:text-sm text-steel leading-6 sm:leading-7">{{ step.text }}</p>
-          <span
-            v-if="i < steps.length - 1"
-            class="hidden lg:block absolute top-10 -left-2 text-copper/40"
-            aria-hidden="true"
-          >
-            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-          </span>
-        </li>
-      </ol>
-    </section>
-
-    <section class="container-shop py-10">
-      <h2 class="section-title mb-7" v-fade-up>منتخب فروشگاه</h2>
-      <ProductRail :products="featured" />
-    </section>
-
-    <section class="container-shop py-10">
-      <h2 class="section-title mb-7" v-fade-up>پرفروش‌ها</h2>
-      <ProductRail :products="popular" />
+      <ProductRail :products="spotlight" />
     </section>
 
     <LookbookGrid />
     <GuaranteePoster />
     <BrandSlider />
 
-    <section class="container-shop py-10">
-      <h2 class="section-title mb-7" v-fade-up>نظر خریداران</h2>
-      <div v-if="!approvedReviews.length" class="surface-card p-6 text-sm leading-7 text-steel">
-        <p class="font-semibold text-ink">هنوز نظری ثبت نشده است.</p>
-        <p class="mt-1">بعد از خرید می‌توانید تجربه خود را بنویسید.</p>
+    <section v-if="approvedReviews.length" class="container-shop py-10">
+      <div class="mb-7 max-w-2xl">
+        <p class="kicker mb-2" v-fade-up>اعتماد</p>
+        <h2 class="section-title" v-fade-up>نظر خریداران</h2>
       </div>
-      <div v-else class="grid md:grid-cols-3 gap-5">
+      <div class="grid md:grid-cols-3 gap-5">
         <article v-for="review in approvedReviews" :key="review.id" class="surface-card p-5 sm:p-6">
           <div class="flex items-center gap-3 mb-3">
             <span class="grid h-12 w-12 place-items-center rounded-full bg-sand text-ember font-bold">
@@ -120,34 +105,72 @@ import { useReviewStore } from '@/stores/reviewStore'
 
 const products = useProductStore()
 const reviews = useReviewStore()
-const featured = computed(() => products.featured.slice(0, 8))
-const popular = computed(() => products.popular.slice(0, 8))
-const approvedReviews = computed(() => reviews.approved.slice(0, 6))
 
-const steps = [
-  {
-    kicker: '۰۱',
-    icon: 'fa-solid fa-comments',
-    title: 'مشاوره محصول',
-    text: 'قبل از سفارش، سایز و استاندارد را از بله، واتساپ یا تماس بپرسید.',
-  },
-  {
-    kicker: '۰۲',
-    icon: 'fa-solid fa-credit-card',
-    title: 'پرداخت کارت‌به‌کارت',
-    text: 'شماره کارت در تسویه نمایش داده می‌شود؛ درگاه آنلاین نداریم.',
-  },
-  {
-    kicker: '۰۳',
-    icon: 'fa-solid fa-receipt',
-    title: 'ارسال رسید واریز',
-    text: 'عکس فیش را آپلود می‌کنید. بررسی خودکار و در صورت نیاز توسط ادمین انجام می‌شود.',
-  },
-  {
-    kicker: '۰۴',
-    icon: 'fa-solid fa-truck',
-    title: 'ارسال بعد از تایید',
-    text: 'تهران: روز و ساعت انتخابی شما. شهرستان: ۳ تا ۷ روز کاری با تیپاکس، ماهکس، پست یا باربری.',
-  },
+function hasImage(product) {
+  return Boolean(product?.image)
+}
+
+const spotlight = computed(() => {
+  const featured = products.featured.filter(hasImage)
+  const popular = products.popular.filter(hasImage)
+  const merged = []
+  const seen = new Set()
+  for (const item of [...featured, ...popular, ...products.products.filter(hasImage)]) {
+    if (seen.has(item.id)) continue
+    seen.add(item.id)
+    merged.push(item)
+    if (merged.length >= 8) break
+  }
+  return merged
+})
+
+const approvedReviews = computed(() => reviews.approved.slice(0, 3))
+
+const trustPoints = [
+  { icon: 'fa-solid fa-credit-card', title: 'کارت‌به‌کارت', text: 'پرداخت امن با تایید رسید' },
+  { icon: 'fa-solid fa-truck-fast', title: 'ارسال سریع', text: 'تهران پیک · شهرستان ۳–۷ روز' },
+  { icon: 'fa-solid fa-certificate', title: 'اصالت کالا', text: 'تجهیزات استاندارد ایمنی' },
+  { icon: 'fa-solid fa-headset', title: 'مشاوره خرید', text: 'راهنمایی انتخاب تجهیزات' },
 ]
 </script>
+
+<style scoped>
+.trust-strip {
+  border-block: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-bone) 88%, #fff);
+}
+
+.trust-strip__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  padding-block: 1rem;
+}
+
+.trust-strip__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-height: 3.25rem;
+}
+
+.trust-strip__icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-ember) 12%, #fff);
+  color: var(--color-ember);
+  font-size: 0.9rem;
+}
+
+@media (min-width: 900px) {
+  .trust-strip__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-block: 1.15rem;
+    gap: 1rem;
+  }
+}
+</style>
