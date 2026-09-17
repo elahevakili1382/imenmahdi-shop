@@ -18,7 +18,14 @@ function readSlides() {
 }
 
 function migrateGuaranteeImage(image) {
-  if (image === 'images/hero/fire-crew.jpg') return defaultGuarantee.image
+  if (
+    image === 'images/hero/fire-crew.jpg' ||
+    image === 'images/hero/fire-ops.jpg' ||
+    image === 'images/hero/firehouse-wide.png' ||
+    image === 'images/hero/site-cones.jpg'
+  ) {
+    return defaultGuarantee.image
+  }
   return image || defaultGuarantee.image
 }
 

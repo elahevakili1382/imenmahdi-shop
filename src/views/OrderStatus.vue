@@ -90,7 +90,7 @@
           <span>{{ formatPrice(item.price * item.quantity) }}</span>
         </div>
         <router-link :to="`/invoice/${order.id}`" class="btn btn-dark w-full mt-6 min-h-11">
-          چاپ فاکتور
+          چاپ پیش‌فاکتور
         </router-link>
       </div>
     </aside>

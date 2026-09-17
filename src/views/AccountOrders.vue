@@ -45,7 +45,7 @@
             پرداخت / رسید
           </router-link>
           <router-link :to="`/invoice/${order.id}`" class="btn btn-ghost min-h-10 text-sm">
-            چاپ فاکتور
+            {{ needsPay(order) ? 'چاپ پیش‌فاکتور' : 'چاپ فاکتور' }}
           </router-link>
         </div>
 

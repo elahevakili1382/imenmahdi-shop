@@ -101,7 +101,11 @@
             مشاهده وضعیت رسید
           </router-link>
           <router-link :to="`/invoice/${order.id}`" class="btn btn-dark min-h-11 w-full">
-            چاپ فاکتور
+            {{
+              needsPayment || order.status === ORDER_STATUS.AWAITING_REVIEW
+                ? 'چاپ پیش‌فاکتور'
+                : 'چاپ فاکتور'
+            }}
           </router-link>
           <router-link to="/account/orders" class="btn btn-ghost min-h-11 w-full">
             بازگشت به سفارش‌ها

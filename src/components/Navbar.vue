@@ -30,7 +30,7 @@
               v-model="query"
               type="search"
               placeholder="جستجو..."
-              class="h-full min-w-0 flex-1 border-0 bg-transparent px-3 text-sm outline-none"
+              class="h-full min-w-0 flex-1 border-0 bg-transparent px-3 text-sm"
               :class="overlay ? 'text-stone placeholder:text-white/45' : 'text-ink'"
             />
             <button
@@ -55,7 +55,7 @@
             v-model="query"
             type="search"
             placeholder="جستجوی کلاه، ماسک، لباس آتش‌نشانی..."
-            class="h-full min-w-0 flex-1 border-0 bg-transparent px-4 text-sm outline-none"
+            class="h-full min-w-0 flex-1 border-0 bg-transparent px-4 text-sm"
             :class="overlay ? 'text-stone placeholder:text-white/45' : 'text-ink'"
           />
           <button
@@ -122,6 +122,7 @@
           </router-link>
 
           <button
+            ref="menuTrigger"
             class="hamburger lg:hidden"
             :class="{ 'is-overlay': overlay, 'is-open': mobileOpen }"
             type="button"
@@ -153,12 +154,13 @@
               <router-link
                 :to="`/products/category/${item.slug}`"
                 class="inline-flex items-center gap-1.5 hover:text-ember transition"
+                aria-haspopup="true"
               >
                 {{ item.name }}
                 <i class="fa-solid fa-chevron-down text-[10px]" aria-hidden="true"></i>
               </router-link>
               <div
-                class="invisible opacity-0 pointer-events-none group-hover:visible group-hover:opacity-100 group-hover:pointer-events-auto absolute right-0 top-full z-40 pt-2"
+                class="invisible opacity-0 pointer-events-none group-hover:visible group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100 group-focus-within:pointer-events-auto absolute right-0 top-full z-40 pt-2"
               >
                 <ul class="w-56 rounded-2xl border border-sand bg-bone text-ink shadow-soft p-2">
                   <li>
@@ -200,12 +202,16 @@
 
       <aside
         id="mobile-drawer"
+        ref="drawerEl"
         class="mobile-drawer lg:hidden"
         :class="{ 'is-open': mobileOpen }"
-        aria-hidden="true"
+        role="dialog"
+        :aria-modal="mobileOpen"
+        aria-label="منوی سایت"
+        :aria-hidden="!mobileOpen"
+        :inert="!mobileOpen"
       >
         <div class="mobile-drawer__head">
-          <p class="mobile-drawer__title">منو</p>
           <button class="mobile-drawer__close" type="button" aria-label="بستن منو" @click="close">
             <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>
@@ -213,7 +219,12 @@
 
         <nav class="mobile-drawer__nav">
           <router-link class="mobile-drawer__link" to="/" @click="close">خانه</router-link>
-          <div v-for="group in categoryTree" :key="group.slug" class="mobile-drawer__group">
+          <div
+            v-for="group in products.categories"
+            :key="group.slug"
+            class="mobile-drawer__group"
+            :class="{ 'is-open': openGroup === group.slug }"
+          >
             <button
               class="mobile-drawer__group-btn"
               type="button"
@@ -221,13 +232,9 @@
               @click="toggleGroup(group.slug)"
             >
               <span>{{ group.name }}</span>
-              <i
-                class="fa-solid fa-chevron-down text-steel text-xs transition"
-                :class="openGroup === group.slug ? 'rotate-180' : ''"
-                aria-hidden="true"
-              ></i>
+              <i class="fa-solid fa-chevron-down text-xs" aria-hidden="true"></i>
             </button>
-            <div v-if="openGroup === group.slug" class="mobile-drawer__sub">
+            <div class="mobile-drawer__sub">
               <router-link
                 :to="`/products/category/${group.slug}`"
                 class="mobile-drawer__sublink mobile-drawer__sublink--all"
@@ -246,8 +253,12 @@
               </router-link>
             </div>
           </div>
-          <router-link class="mobile-drawer__link" to="/contact" @click="close">تماس</router-link>
+          <router-link class="mobile-drawer__link" to="/contact" @click="close">
+            <i class="fa-solid fa-phone" aria-hidden="true"></i>
+            تماس
+          </router-link>
           <router-link class="mobile-drawer__link" :to="auth.isLoggedIn ? '/account' : '/login'" @click="close">
+            <i class="fa-regular fa-user" aria-hidden="true"></i>
             {{ auth.isLoggedIn ? 'حساب کاربری' : 'ورود / ثبت‌نام' }}
           </router-link>
         </nav>
@@ -259,12 +270,13 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { categoryTree } from '@/data/catalog'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
+import { useProductStore } from '@/stores/productStore'
 
 const cart = useCartStore()
 const auth = useAuthStore()
+const products = useProductStore()
 const route = useRoute()
 const router = useRouter()
 const query = ref('')
@@ -278,6 +290,10 @@ const scrolled = ref(false)
 const navHidden = ref(false)
 const headerHeight = ref(64)
 const lastScrollY = ref(0)
+const drawerEl = ref(null)
+const menuTrigger = ref(null)
+const restoreMenuFocus = ref(false)
+const MENU_EVENT = 'imen:open-shop-menu'
 
 const overlay = computed(() => route.name === 'Home' && !scrolled.value && !mobileOpen.value)
 
@@ -288,6 +304,12 @@ function measureHeader() {
 function onScroll() {
   const current = window.scrollY
   scrolled.value = current > 48
+
+  if (headerEl.value?.contains(document.activeElement) || mobileOpen.value) {
+    navHidden.value = false
+    lastScrollY.value = current
+    return
+  }
 
   if (current <= 16) {
     navHidden.value = false
@@ -305,8 +327,31 @@ function onDocClick(event) {
   if (!accountRoot.value?.contains(event.target)) accountOpen.value = false
 }
 
+function trapDrawerFocus(event) {
+  const root = drawerEl.value
+  if (!root) return
+  const nodes = [...root.querySelectorAll('a[href], button:not([disabled]), input, textarea, select')].filter(
+    (el) => el.getClientRects().length,
+  )
+  if (!nodes.length) return
+  const first = nodes[0]
+  const last = nodes[nodes.length - 1]
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
 function onKey(event) {
   if (event.key === 'Escape') close()
+  if (event.key === 'Tab' && mobileOpen.value) trapDrawerFocus(event)
+}
+
+function openMobileMenu() {
+  mobileOpen.value = true
 }
 
 function toggleMobile() {
@@ -328,6 +373,7 @@ onMounted(async () => {
   window.addEventListener('resize', measureHeader)
   document.addEventListener('click', onDocClick)
   window.addEventListener('keydown', onKey)
+  window.addEventListener(MENU_EVENT, openMobileMenu)
 })
 
 onBeforeUnmount(() => {
@@ -335,12 +381,13 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', measureHeader)
   document.removeEventListener('click', onDocClick)
   window.removeEventListener('keydown', onKey)
+  window.removeEventListener(MENU_EVENT, openMobileMenu)
   document.body.style.overflow = ''
 })
 
 const navItems = computed(() => [
   { name: 'home', label: 'خانه', to: '/' },
-  ...categoryTree,
+  ...products.categories,
   { name: 'contact', label: 'تماس', to: '/contact' },
 ])
 
@@ -353,7 +400,8 @@ function toggleGroup(slug) {
   openGroup.value = openGroup.value === slug ? '' : slug
 }
 
-function close() {
+function close(restore = true) {
+  restoreMenuFocus.value = Boolean(restore && mobileOpen.value)
   mobileOpen.value = false
   accountOpen.value = false
   openGroup.value = ''
@@ -370,13 +418,22 @@ watch(
 watch(
   () => route.fullPath,
   () => {
-    close()
+    close(false)
   },
 )
 
-watch(mobileOpen, (open) => {
+watch(mobileOpen, async (open) => {
   document.body.style.overflow = open ? 'hidden' : ''
-  if (open) navHidden.value = false
+  if (open) {
+    navHidden.value = false
+    await nextTick()
+    drawerEl.value?.querySelector('.mobile-drawer__close')?.focus()
+    return
+  }
+  if (restoreMenuFocus.value && menuTrigger.value && document.body.contains(menuTrigger.value)) {
+    menuTrigger.value.focus()
+  }
+  restoreMenuFocus.value = false
 })
 
 watch(
@@ -531,7 +588,7 @@ watch(
   right: 0;
   bottom: 0;
   z-index: 60;
-  width: min(280px, 45vw);
+  width: min(17rem, 78vw);
   display: flex;
   flex-direction: column;
   padding: 1rem 1rem 1.5rem;
@@ -552,22 +609,15 @@ watch(
 .mobile-drawer__head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.75rem;
+  justify-content: flex-start;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--color-sand);
 }
 
-.mobile-drawer__title {
-  margin: 0;
-  font-weight: 800;
-  font-size: 1rem;
-}
-
 .mobile-drawer__close {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 0;
   border-radius: 999px;
   background: var(--color-sand);
@@ -586,8 +636,8 @@ watch(
 .mobile-drawer__group-btn {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  justify-content: flex-start;
+  gap: 0.65rem;
   width: 100%;
   min-height: 44px;
   padding: 0.55rem 0.35rem;
@@ -600,18 +650,58 @@ watch(
   cursor: pointer;
 }
 
-.mobile-drawer__link:hover,
-.mobile-drawer__group-btn:hover,
-.mobile-drawer__sublink:hover {
-  background: var(--color-sand);
+.mobile-drawer__link i {
+  width: 1.1rem;
+  text-align: center;
+  color: var(--color-ember);
 }
 
 .mobile-drawer__group-btn {
+  justify-content: space-between;
   font-weight: 700;
 }
 
+.mobile-drawer__link:hover,
+.mobile-drawer__link:focus-visible,
+.mobile-drawer__group-btn:hover,
+.mobile-drawer__group-btn:focus-visible,
+.mobile-drawer__sublink:hover,
+.mobile-drawer__sublink:focus-visible {
+  background: color-mix(in srgb, var(--color-ember) 12%, #fff);
+  color: var(--color-ember);
+}
+
+.mobile-drawer__link:active,
+.mobile-drawer__group-btn:active,
+.mobile-drawer__sublink:active {
+  background: color-mix(in srgb, var(--color-ember) 18%, #fff);
+}
+
+.mobile-drawer__group-btn i {
+  color: var(--color-ash);
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.mobile-drawer__group.is-open .mobile-drawer__group-btn,
+.mobile-drawer__group:hover .mobile-drawer__group-btn {
+  background: color-mix(in srgb, var(--color-ember) 12%, #fff);
+  color: var(--color-ember);
+}
+
+.mobile-drawer__group.is-open .mobile-drawer__group-btn i,
+.mobile-drawer__group:hover .mobile-drawer__group-btn i {
+  color: var(--color-ember);
+  transform: rotate(180deg);
+}
+
 .mobile-drawer__sub {
-  padding: 0.15rem 0 0.35rem 0.35rem;
+  display: none;
+  padding: 0.15rem 0 0.45rem 0.35rem;
+}
+
+.mobile-drawer__group.is-open .mobile-drawer__sub,
+.mobile-drawer__group:hover .mobile-drawer__sub {
+  display: block;
 }
 
 .mobile-drawer__sublink {
@@ -620,6 +710,7 @@ watch(
   border-radius: 10px;
   color: var(--color-ash);
   text-decoration: none;
+  transition: background 160ms ease, color 160ms ease;
 }
 
 .mobile-drawer__sublink--all {

@@ -16,6 +16,7 @@
               type="button"
               class="rounded-2xl border px-3 py-3.5 text-sm font-semibold min-h-12"
               :class="form.zone === 'tehran' ? 'border-ember bg-sand' : 'border-[#ddd4c8] bg-white'"
+              :aria-pressed="form.zone === 'tehran'"
               @click="setZone('tehran')"
             >
               ارسال به تهران
@@ -24,21 +25,39 @@
               type="button"
               class="rounded-2xl border px-3 py-3.5 text-sm font-semibold min-h-12"
               :class="form.zone === 'county' ? 'border-ember bg-sand' : 'border-[#ddd4c8] bg-white'"
+              :aria-pressed="form.zone === 'county'"
               @click="setZone('county')"
             >
               ارسال به شهرستان
             </button>
           </div>
-          <input
-            v-if="form.zone === 'county'"
-            v-model="form.city"
-            class="field"
-            placeholder="شهر"
-            required
-          />
+          <label v-if="form.zone === 'county'" class="block">
+            <span class="field-label">
+              شهر <span class="field-required" aria-hidden="true">*</span>
+            </span>
+            <input
+              v-model="form.city"
+              class="field"
+              autocomplete="address-level2"
+              required
+            />
+          </label>
           <p v-else class="text-sm text-steel">مقصد: تهران</p>
-          <textarea v-model="form.address" class="field min-h-28" placeholder="آدرس کامل" required />
-          <textarea v-model="form.note" class="field min-h-20" placeholder="توضیح سفارش (اختیاری)" />
+          <label class="block">
+            <span class="field-label">
+              آدرس کامل <span class="field-required" aria-hidden="true">*</span>
+            </span>
+            <textarea
+              v-model="form.address"
+              class="field min-h-28"
+              autocomplete="street-address"
+              required
+            />
+          </label>
+          <label class="block">
+            <span class="field-label">توضیح سفارش (اختیاری)</span>
+            <textarea v-model="form.note" class="field min-h-20" />
+          </label>
         </div>
 
         <div class="surface-card p-5 sm:p-6">
@@ -71,6 +90,7 @@
                   type="button"
                   class="min-w-[76px] min-h-[72px] rounded-2xl border px-2 py-2.5 text-center"
                   :class="form.deliveryDate === day.iso ? 'border-ember bg-sand' : 'border-[#ddd4c8] bg-white'"
+                  :aria-pressed="form.deliveryDate === day.iso"
                   @click="form.deliveryDate = day.iso"
                 >
                   <span class="block text-[11px] text-steel">{{ day.weekday }}</span>
@@ -88,6 +108,7 @@
                   type="button"
                   class="rounded-2xl border px-2 py-3 text-sm font-semibold min-h-12"
                   :class="form.deliverySlot === slot.id ? 'border-ember bg-sand' : 'border-[#ddd4c8] bg-white'"
+                  :aria-pressed="form.deliverySlot === slot.id"
                   @click="form.deliverySlot = slot.id"
                 >
                   {{ slot.label }}
@@ -111,8 +132,8 @@
         <p class="flex justify-between font-bold text-lg mb-6">
           <span>جمع</span><span>{{ formatPrice(payable) }} تومان</span>
         </p>
-        <button class="btn btn-primary w-full min-h-11" type="submit">
-          ثبت سفارش و نمایش کارت
+        <button class="btn btn-primary w-full min-h-11" type="submit" :disabled="pending">
+          {{ pending ? 'در حال ثبت سفارش...' : 'ثبت سفارش و نمایش کارت' }}
         </button>
       </aside>
     </form>
@@ -120,7 +141,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import CheckoutSteps from '@/components/CheckoutSteps.vue'
@@ -139,6 +160,7 @@ const tehranSlots = computed(() => shippingStore.slots)
 const router = useRouter()
 const toast = useToast()
 const days = nextWorkingDays(7)
+const pending = ref(false)
 
 const initialTehran = /تهران/.test(auth.user?.city || '')
 
@@ -185,7 +207,7 @@ function setZone(zone) {
 }
 
 async function submit() {
-  if (!cart.items.length) return
+  if (!cart.items.length || pending.value) return
   if (form.zone === 'tehran' && (!form.deliveryDate || !form.deliverySlot)) {
     toast.error('روز و بازه ساعت تهران را انتخاب کنید')
     return
@@ -194,21 +216,28 @@ async function submit() {
     toast.error('شهر را وارد کنید')
     return
   }
-  await auth.updateProfile({ city: form.city, address: form.address })
-  const order = await orders.createOrder({
-    user: auth.user,
-    items: cart.items.map((item) => ({ ...item })),
-    subtotal: cart.totalPrice,
-    shippingId: form.shippingId,
-    city: form.city,
-    address: form.address,
-    note: form.note,
-    destination: form.zone,
-    deliveryDate: form.zone === 'tehran' ? form.deliveryDate : '',
-    deliverySlot: form.zone === 'tehran' ? form.deliverySlot : '',
-  })
-  cart.clearCart()
-  router.push({ name: 'OrderStatus', params: { id: order.id } })
+  pending.value = true
+  try {
+    await auth.updateProfile({ city: form.city, address: form.address })
+    const order = await orders.createOrder({
+      user: auth.user,
+      items: cart.items.map((item) => ({ ...item })),
+      subtotal: cart.totalPrice,
+      shippingId: form.shippingId,
+      city: form.city,
+      address: form.address,
+      note: form.note,
+      destination: form.zone,
+      deliveryDate: form.zone === 'tehran' ? form.deliveryDate : '',
+      deliverySlot: form.zone === 'tehran' ? form.deliverySlot : '',
+    })
+    cart.clearCart()
+    router.push({ name: 'OrderStatus', params: { id: order.id } })
+  } catch (err) {
+    toast.error(err.message || 'ثبت سفارش انجام نشد. دوباره تلاش کنید.')
+  } finally {
+    pending.value = false
+  }
 }
 </script>
 

@@ -9,9 +9,12 @@ const content = useContentStore()
 const slides = computed(() => content.heroSlides)
 
 const index = ref(0)
-const paused = ref(false)
+const userPaused = ref(false)
+const hoverPaused = ref(false)
 const reduceMotion = ref(false)
 let timer
+
+const paused = computed(() => userPaused.value || hoverPaused.value || reduceMotion.value)
 
 function go(i) {
   if (!slides.value.length) return
@@ -27,13 +30,29 @@ function prev() {
   go(index.value - 1)
 }
 
+function togglePause() {
+  const shouldPause = !paused.value
+  userPaused.value = shouldPause
+  if (!shouldPause) hoverPaused.value = false
+}
+
+function onHeroFocusOut(event) {
+  if (!event.currentTarget.contains(event.relatedTarget)) hoverPaused.value = false
+}
+
+function onHeroMouseLeave(event) {
+  if (!event.currentTarget.contains(document.activeElement)) hoverPaused.value = false
+}
+
 function restart() {
   window.clearInterval(timer)
-  if (paused.value || reduceMotion.value || slides.value.length < 2) return
+  if (paused.value || slides.value.length < 2) return
   timer = window.setInterval(() => {
     index.value = (index.value + 1) % slides.value.length
   }, 7500)
 }
+
+watch(paused, () => restart())
 
 watch(
   () => slides.value.length,
@@ -45,7 +64,7 @@ watch(
 
 onMounted(() => {
   reduceMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (reduceMotion.value) paused.value = true
+  if (reduceMotion.value) userPaused.value = true
   restart()
 })
 
@@ -55,7 +74,15 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="relative isolate overflow-hidden bg-night text-stone min-h-[34rem] sm:min-h-[68vh]">
+  <section
+    class="relative isolate overflow-hidden bg-night text-stone min-h-[34rem] sm:min-h-[68vh]"
+    aria-roledescription="carousel"
+    aria-label="بنر فروشگاه"
+    @mouseenter="hoverPaused = true"
+    @mouseleave="onHeroMouseLeave"
+    @focusin="hoverPaused = true"
+    @focusout="onHeroFocusOut"
+  >
     <div class="absolute inset-0 overflow-hidden">
       <img
         v-for="(slide, i) in slides"
@@ -96,6 +123,15 @@ onBeforeUnmount(() => {
           <button class="hero-ctrl" type="button" aria-label="اسلاید قبلی" @click="prev">
             <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
           </button>
+          <button
+            class="hero-ctrl"
+            type="button"
+            :aria-label="paused ? 'پخش اسلایدها' : 'توقف اسلایدها'"
+            :aria-pressed="paused"
+            @click="togglePause"
+          >
+            <i :class="paused ? 'fa-solid fa-play' : 'fa-solid fa-pause'" aria-hidden="true"></i>
+          </button>
           <button class="hero-ctrl" type="button" aria-label="اسلاید بعدی" @click="next">
             <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
           </button>
@@ -114,6 +150,7 @@ onBeforeUnmount(() => {
               : 'border-white/10 bg-black/20 hover:border-white/25'
           "
           :aria-current="i === index ? 'true' : undefined"
+          :aria-label="slide.headline || slide.kicker"
           @click="go(i)"
         >
           <span class="text-xs tabular-nums text-copper pt-0.5">{{ String(i + 1).padStart(2, '0') }}</span>
@@ -137,6 +174,7 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(255, 255, 255, 0.28);
   background: rgba(12, 14, 18, 0.35);
   color: #f4efe7;
+  cursor: pointer;
 }
 
 .hero-frame {

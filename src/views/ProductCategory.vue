@@ -1,11 +1,11 @@
 <template>
-  <section class="container-shop py-8 sm:py-10">
+  <section class="container-shop py-8 sm:py-10 min-w-0">
     <p class="text-sm text-steel mb-2">دسته‌بندی</p>
-    <h1 class="text-3xl font-bold mb-6">{{ title }}</h1>
+    <h1 class="text-2xl sm:text-3xl font-bold mb-6">{{ title }}</h1>
 
     <div class="lg:hidden mb-4">
-      <button class="btn btn-dark min-h-11 text-sm" type="button" @click="filtersOpen = !filtersOpen">
-        {{ filtersOpen ? 'بستن فیلتر' : 'فیلتر سایز، رنگ و قیمت' }}
+      <button class="btn btn-dark min-h-11 text-sm w-full sm:w-auto" type="button" @click="filtersOpen = !filtersOpen">
+        {{ filtersOpen ? 'بستن فیلتر' : 'فیلترها' }}
       </button>
     </div>
 
@@ -27,7 +27,7 @@
         />
       </div>
 
-      <div>
+      <div class="min-w-0">
         <div v-if="visible.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4 xl:gap-5">
           <ProductCard v-for="product in visible" :key="product.id" :product="product" />
         </div>
@@ -47,8 +47,8 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '@/components/ProductCard.vue'
 import ProductFilters from '@/components/ProductFilters.vue'
-import { categoryTree } from '@/data/catalog'
 import { useProductStore } from '@/stores/productStore'
+import { isPriceOnRequest } from '@/utils/money'
 import { applySeo } from '@/utils/seo'
 
 const route = useRoute()
@@ -78,12 +78,12 @@ const visible = computed(() =>
       !selectedSizes.value.length || (item.sizes || []).some((size) => selectedSizes.value.includes(size))
     const colorOk =
       !selectedColors.value.length || (item.colors || []).some((color) => selectedColors.value.includes(color))
-    return sizeOk && colorOk && item.price >= price.value.min && item.price <= price.value.max
+    return sizeOk && colorOk && (isPriceOnRequest(item) || (item.price >= price.value.min && item.price <= price.value.max))
   }),
 )
 
 const title = computed(() => {
-  for (const group of categoryTree) {
+  for (const group of store.categories) {
     if (group.slug === slug.value) return group.name
     const child = group.children.find((item) => item.slug === slug.value)
     if (child) return child.name

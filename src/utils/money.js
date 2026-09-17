@@ -11,6 +11,15 @@ export function formatPrice(value) {
   return new Intl.NumberFormat('fa-IR').format(toNumber(value))
 }
 
+export function isPriceOnRequest(product) {
+  return Boolean(product?.priceOnRequest)
+}
+
+export function displayPrice(product) {
+  if (isPriceOnRequest(product)) return 'جهت خرید تماس بگیرید'
+  return `${formatPrice(product.price)} تومان`
+}
+
 export function formatCardNumber(value) {
   return String(value)
     .replace(/\s/g, '')

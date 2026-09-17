@@ -1,41 +1,19 @@
 <template>
   <Teleport to="body">
-    <nav
-      v-if="props.enabled"
-      class="shop-mobile-dock"
-      dir="ltr"
-      role="navigation"
-      aria-label="ناوبری پایین موبایل"
-    >
-      <button class="shop-mobile-dock__circle" type="button" aria-label="بازگشت" @click="goBack">
-        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-      </button>
-
-      <div class="shop-mobile-dock__pill">
-        <router-link
-          v-for="item in dockItems"
-          :key="item.label"
-          :to="item.to"
-          class="shop-mobile-dock__item"
-          :class="{ 'is-active': item.active }"
-          :aria-label="item.label"
-          :aria-current="item.active ? 'page' : undefined"
-          @click="item.onClick"
-        >
-          <span class="shop-mobile-dock__icon-wrap">
-            <i :class="item.icon" aria-hidden="true"></i>
-          </span>
-        </router-link>
-      </div>
-
+    <nav class="shop-mobile-dock" dir="rtl" role="navigation" aria-label="ناوبری پایین موبایل">
       <router-link
-        to="/cart"
-        class="shop-mobile-dock__circle"
-        :class="{ 'is-active': route.path.startsWith('/cart') }"
-        aria-label="سبد خرید"
+        v-for="item in dockItems"
+        :key="item.label"
+        :to="item.to"
+        class="shop-mobile-dock__item"
+        :class="{ 'is-active': item.active }"
+        :aria-current="item.active ? 'page' : undefined"
       >
-        <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
-        <span v-if="cart.totalCount" class="shop-mobile-dock__badge">{{ cart.totalCount }}</span>
+        <span class="shop-mobile-dock__icon">
+          <i :class="item.active ? item.iconOn : item.iconOff" aria-hidden="true"></i>
+          <span v-if="item.badge" class="shop-mobile-dock__badge">{{ item.badge }}</span>
+        </span>
+        <span class="shop-mobile-dock__label">{{ item.label }}</span>
       </router-link>
     </nav>
   </Teleport>
@@ -43,84 +21,76 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
 
-const props = defineProps({
-  enabled: { type: Boolean, default: true },
-})
-
 const route = useRoute()
-const router = useRouter()
 const auth = useAuthStore()
 const cart = useCartStore()
 
-function goBack() {
-  if (window.history.length > 1) router.back()
-  else router.push('/')
-}
-
-function focusSearch(event) {
-  if (route.path.startsWith('/products')) {
-    event.preventDefault()
-    requestAnimationFrame(() => {
-      document.getElementById('site-search-mobile')?.focus()
-    })
-  }
-}
-
 const dockItems = computed(() => {
-  const profileTo = auth.isLoggedIn ? '/account' : '/login'
+  const path = route.path
+  const onCatalog =
+    route.name === 'ProductsApp' ||
+    route.name === 'ProductCategory' ||
+    route.name === 'ProductDetail'
   return [
     {
       label: 'خانه',
       to: '/',
-      icon: 'fa-solid fa-house',
-      active: route.path === '/' || route.path === '',
+      iconOff: 'fa-solid fa-house',
+      iconOn: 'fa-solid fa-house',
+      active: path === '/' || path === '',
     },
     {
-      label: 'جستجو',
+      label: 'کاتالوگ',
       to: '/products',
-      icon: 'fa-solid fa-magnifying-glass',
-      active: route.name === 'ProductsApp',
-      onClick: focusSearch,
+      iconOff: 'fa-solid fa-border-all',
+      iconOn: 'fa-solid fa-border-all',
+      active: onCatalog,
     },
     {
-      label: 'دسته‌ها',
-      to: '/products',
-      icon: 'fa-solid fa-border-all',
-      active: route.name === 'ProductCategory',
+      label: 'سبد',
+      to: '/cart',
+      iconOff: 'fa-solid fa-bag-shopping',
+      iconOn: 'fa-solid fa-bag-shopping',
+      badge: cart.totalCount || undefined,
+      active: path.startsWith('/cart') || route.name === 'Checkout',
     },
     {
       label: 'حساب',
-      to: profileTo,
-      icon: 'fa-regular fa-user',
+      to: auth.isLoggedIn ? '/account' : '/login',
+      iconOff: 'fa-regular fa-user',
+      iconOn: 'fa-solid fa-user',
       active:
-        route.path.startsWith('/account') ||
-        route.path === '/login' ||
-        route.path === '/register',
+        path.startsWith('/account') || path === '/login' || path === '/register',
     },
   ]
 })
 </script>
 
 <style>
-/* Critical: always with component — CSS-only mobile visibility (no JS matchMedia) */
 .shop-mobile-dock {
-  position: fixed !important;
-  left: 50% !important;
-  bottom: calc(0.85rem + env(safe-area-inset-bottom, 0px)) !important;
-  z-index: 2147483000 !important;
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 9998;
   display: none !important;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  width: min(calc(100vw - 1.25rem), 26rem);
-  transform: translateX(-50%);
-  pointer-events: none;
-  visibility: visible !important;
-  opacity: 1 !important;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 2px;
+  height: 64px;
+  max-width: 28rem;
+  margin-inline: auto;
+  padding: 4px;
+  border: 1px solid var(--color-line, #d9d0c3);
+  border-radius: 22px;
+  background: #fbfaf7;
+  box-shadow: 0 12px 32px rgba(12, 14, 18, 0.14);
+  pointer-events: auto;
+  visibility: visible;
 }
 
 @media (max-width: 1023px) {
@@ -129,87 +99,49 @@ const dockItems = computed(() => {
   }
 }
 
-.shop-mobile-dock__circle,
-.shop-mobile-dock__pill,
 .shop-mobile-dock__item {
-  pointer-events: auto;
-}
-
-.shop-mobile-dock__circle {
   position: relative;
-  display: grid;
-  place-items: center;
-  width: 3.15rem;
-  height: 3.15rem;
-  flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #1c1916;
-  box-shadow: 0 10px 28px rgba(12, 14, 18, 0.16);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  text-decoration: none;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-
-.shop-mobile-dock__circle.is-active {
-  color: #c45c26;
-}
-
-.shop-mobile-dock__pill {
   display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  justify-content: space-evenly;
-  gap: 0.15rem;
-  min-width: 0;
-  height: 3.35rem;
-  padding: 0.3rem;
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 12px 32px rgba(12, 14, 18, 0.16);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-.shop-mobile-dock__item {
-  display: inline-flex;
   flex: 1 1 0;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.2rem;
   min-width: 44px;
   min-height: 44px;
-  border-radius: 999px;
+  border-radius: 18px;
   color: #6b6560;
   text-decoration: none;
-}
-
-.shop-mobile-dock__icon-wrap {
-  display: grid;
-  place-items: center;
-  width: 2.35rem;
-  height: 2.35rem;
-  border-radius: 999px;
-  font-size: 1rem;
-  line-height: 1;
+  cursor: pointer;
 }
 
 .shop-mobile-dock__item.is-active {
-  color: #1c1916;
+  color: #c45c26;
+  background: color-mix(in srgb, #c45c26 10%, #fff);
 }
 
-.shop-mobile-dock__item.is-active .shop-mobile-dock__icon-wrap {
-  background: #fff;
-  box-shadow: 0 4px 14px rgba(12, 14, 18, 0.12);
+.shop-mobile-dock__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.shop-mobile-dock__label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .shop-mobile-dock__badge {
   position: absolute;
-  top: 0.15rem;
-  right: 0.1rem;
+  top: -0.35rem;
+  inset-inline-end: -0.45rem;
   min-width: 1rem;
   height: 1rem;
   padding: 0 3px;
@@ -223,9 +155,19 @@ const dockItems = computed(() => {
   line-height: 1;
 }
 
+.shop-mobile-dock__badge:empty {
+  display: none;
+}
+
 @media print {
   .shop-mobile-dock {
     display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-mobile-dock__item {
+    transition: none;
   }
 }
 </style>

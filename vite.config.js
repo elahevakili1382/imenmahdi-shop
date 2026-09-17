@@ -22,6 +22,9 @@ export default defineConfig(({ command }) => ({
       '/api': 'http://127.0.0.1:3001',
       '/uploads': 'http://127.0.0.1:3001',
     },
+    watch: {
+      ignored: ['**/.agents/**', '**/.cursor/**', '**/.claude/**'],
+    },
   },
   optimizeDeps: {
     exclude: ['@vue/eslint-config-prettier'],

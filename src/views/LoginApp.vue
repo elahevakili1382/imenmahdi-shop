@@ -1,17 +1,49 @@
 <template>
-  <AuthShell title="ورود خریدار">
+  <AuthShell title="ورود خریدار" subtitle="با شماره موبایل و رمز وارد شوید.">
     <form class="auth-form surface-card" @submit.prevent="submit">
-      <input
-        v-model="phone"
-        class="field field-phone"
-        inputmode="numeric"
-        maxlength="11"
-        placeholder="شماره موبایل"
-        required
-      />
-      <input v-model="password" class="field" type="password" placeholder="رمز عبور" required />
-      <p v-if="error" class="auth-error">{{ error }}</p>
-      <button class="btn btn-primary w-full auth-submit" type="submit">ورود</button>
+      <div>
+        <label class="field-label" for="login-phone">
+          شماره موبایل <span class="field-required" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="login-phone"
+          v-model="phone"
+          class="field field-phone"
+          type="tel"
+          inputmode="numeric"
+          maxlength="11"
+          autocomplete="username"
+          required
+        />
+      </div>
+      <div>
+        <label class="field-label" for="login-password">
+          رمز عبور <span class="field-required" aria-hidden="true">*</span>
+        </label>
+        <div class="field-wrap">
+          <input
+            id="login-password"
+            v-model="password"
+            class="field"
+            :type="showPassword ? 'text' : 'password'"
+            autocomplete="current-password"
+            required
+          />
+          <button
+            class="field-toggle"
+            type="button"
+            :aria-label="showPassword ? 'پنهان کردن رمز' : 'نمایش رمز'"
+            :aria-pressed="showPassword"
+            @click="showPassword = !showPassword"
+          >
+            <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+      <p v-if="error" id="login-error" class="auth-error" role="alert">{{ error }}</p>
+      <button class="btn btn-primary w-full auth-submit" type="submit" :disabled="pending">
+        {{ pending ? 'در حال ورود...' : 'ورود' }}
+      </button>
     </form>
     <template #footer>
       حساب ندارید؟
@@ -32,6 +64,8 @@ const route = useRoute()
 const phone = ref('')
 const password = ref('')
 const error = ref('')
+const pending = ref(false)
+const showPassword = ref(false)
 
 function digits(value) {
   return String(value || '')
@@ -40,7 +74,9 @@ function digits(value) {
 }
 
 async function submit() {
+  if (pending.value) return
   error.value = ''
+  pending.value = true
   try {
     await auth.login({ phone: digits(phone.value), password: password.value })
     const { refreshPrivateData } = await import('@/services/boot')
@@ -48,6 +84,8 @@ async function submit() {
     router.push(route.query.redirect || (auth.isAdmin ? '/dashboard' : '/account'))
   } catch (err) {
     error.value = err.message
+  } finally {
+    pending.value = false
   }
 }
 </script>
@@ -55,16 +93,8 @@ async function submit() {
 <style scoped>
 .auth-form {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.85rem;
   padding: 1rem;
-}
-
-.field {
-  width: 100%;
-  border: 1px solid #ddd4c8;
-  border-radius: 12px;
-  padding: 0.7rem 0.85rem;
-  font-size: 0.875rem;
 }
 
 .field-phone {
@@ -79,7 +109,12 @@ async function submit() {
 }
 
 .auth-submit {
-  min-height: 42px;
+  min-height: 44px;
   font-size: 0.875rem;
+}
+
+.auth-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 </style>

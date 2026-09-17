@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { asset } from '@/utils/asset'
-import { formatPrice } from '@/utils/money'
+import { displayPrice, isPriceOnRequest } from '@/utils/money'
 import { useCartStore } from '@/stores/cartStore'
 import { useToast } from 'vue-toastification'
 import { useContactStore } from '@/stores/contactStore'
@@ -19,6 +19,10 @@ const addLabel = computed(() => (outOfStock.value ? 'ناموجود' : 'افزو
 const imageSrc = computed(() => (broken.value ? '' : asset(props.product.image)))
 
 function add() {
+  if (isPriceOnRequest(props.product)) {
+    contact.openWidget(props.product)
+    return
+  }
   if (outOfStock.value) {
     toast.error('این کالا فعلاً موجود نیست')
     return
@@ -63,22 +67,20 @@ function onImageError() {
       <div class="p-2.5 sm:p-3 flex flex-col gap-1 flex-1">
         <p class="text-[11px] text-steel">{{ product.subcategory }}</p>
         <h3 class="font-semibold text-xs sm:text-sm leading-5 line-clamp-2">{{ product.title }}</h3>
-        <strong class="mt-auto pt-2 text-xs sm:text-sm">{{ formatPrice(product.price) }} تومان</strong>
+        <strong class="mt-auto pt-2 text-xs sm:text-sm">{{ displayPrice(product) }}</strong>
       </div>
     </router-link>
     <div class="flex gap-1.5 px-2.5 pb-2.5 sm:px-3 sm:pb-3">
       <button
-        class="card-action card-action-dark flex-1"
+        class="card-action card-action-dark card-action-add flex-1"
         type="button"
-        :disabled="outOfStock"
+        :disabled="outOfStock && !isPriceOnRequest(product)"
         :aria-label="addLabel"
         @click="add"
       >
         <span v-if="outOfStock">ناموجود</span>
-        <span v-else class="inline-flex items-center gap-1.5">
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          افزودن
-        </span>
+        <span v-else-if="isPriceOnRequest(product)">تماس بگیرید</span>
+        <i v-else class="fa-solid fa-plus" aria-hidden="true"></i>
       </button>
       <button class="card-action card-action-ghost px-3" type="button" @click="ask">مشاوره</button>
     </div>
@@ -151,18 +153,13 @@ function onImageError() {
   box-shadow: 0 10px 20px rgba(196, 92, 38, 0.28);
 }
 
-.card-action-icon {
-  width: 44px;
-  height: 44px;
-  min-height: 44px;
-  padding: 0;
-  flex-shrink: 0;
-  display: inline-grid;
-  place-items: center;
-  line-height: 1;
+.card-action-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.card-action-icon i {
+.card-action-add i {
   display: block;
   font-size: 0.95rem;
   line-height: 1;

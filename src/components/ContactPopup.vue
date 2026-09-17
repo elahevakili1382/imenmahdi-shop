@@ -23,7 +23,7 @@
                 }}
               </p>
             </div>
-            <button type="button" @click="contact.close()">بستن</button>
+            <button class="shop-contact-fab__close" type="button" @click="contact.close()">بستن</button>
           </div>
 
           <div class="shop-contact-fab__actions">
@@ -84,9 +84,8 @@ const rubikaHref = computed(() => rubikaLink())
 
 .shop-contact-fab__btn {
   position: fixed !important;
-  /* physical bottom-left in LTR coords = visible corner opposite dock in RTL pages */
-  left: 1rem !important;
-  right: auto !important;
+  inset-inline-end: 1rem !important;
+  inset-inline-start: auto !important;
   bottom: 1.25rem !important;
   z-index: 2147483001 !important;
   display: grid !important;
@@ -107,7 +106,7 @@ const rubikaHref = computed(() => rubikaLink())
 
 @media (max-width: 1023px) {
   .shop-contact-fab__btn {
-    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
@@ -120,8 +119,8 @@ const rubikaHref = computed(() => rubikaLink())
 
 .shop-contact-fab__panel {
   position: absolute;
-  left: 1rem;
-  right: auto;
+  inset-inline-end: 1rem;
+  inset-inline-start: auto;
   bottom: 1.25rem;
   width: min(92vw, 360px);
   max-width: calc(100% - 2.5rem);
@@ -134,7 +133,7 @@ const rubikaHref = computed(() => rubikaLink())
 
 @media (max-width: 1023px) {
   .shop-contact-fab__panel {
-    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -159,9 +158,13 @@ const rubikaHref = computed(() => rubikaLink())
   line-height: 1.6;
 }
 
-.shop-contact-fab__head button {
+.shop-contact-fab__close {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.75rem;
   border: 0;
-  background: transparent;
+  border-radius: 999px;
+  background: var(--color-sand, #e8e0d4);
   cursor: pointer;
   font-size: 0.85rem;
   color: inherit;

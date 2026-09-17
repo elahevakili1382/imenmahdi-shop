@@ -9,7 +9,7 @@
     <article class="sheet">
       <header class="flex justify-between gap-4 border-b pb-4 mb-6">
         <div>
-          <h1 class="text-2xl font-extrabold">فاکتور فروش</h1>
+          <h1 class="text-2xl font-extrabold">{{ isProforma ? 'پیش‌فاکتور' : 'فاکتور فروش' }}</h1>
           <p class="text-ember text-sm mt-1">ایمنی مهدی</p>
         </div>
         <div class="text-left">
@@ -63,7 +63,13 @@
         <p>جمع کالا: {{ formatPrice(order.subtotal || order.total) }} تومان</p>
         <p>هزینه ارسال: {{ order.shippingPrice ? formatPrice(order.shippingPrice) + ' تومان' : 'پس از هماهنگی' }}</p>
         <p class="text-lg font-bold mt-2">مبلغ کل: {{ formatPrice(order.total) }} تومان</p>
-        <p class="mt-6 text-steel">این فاکتور پس از تایید رسید توسط سیستم/ادمین معتبر است.</p>
+        <p class="mt-6 text-steel">
+          {{
+            isProforma
+              ? 'این پیش‌فاکتور است و پس از تایید رسید توسط ادمین، فاکتور فروش معتبر می‌شود.'
+              : 'این فاکتور پس از تایید رسید توسط سیستم/ادمین معتبر است.'
+          }}
+        </p>
       </footer>
     </article>
   </div>
@@ -75,7 +81,7 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useOrderStore } from '@/stores/orderStore'
 import { useShippingStore } from '@/stores/shippingStore'
-import { statusLabel } from '@/data/orderStatus'
+import { statusLabel, ORDER_STATUS } from '@/data/orderStatus'
 import { formatPrice } from '@/utils/money'
 
 const route = useRoute()
@@ -85,6 +91,13 @@ const shipping = useShippingStore()
 const order = computed(() => orders.byId(route.params.id))
 const denied = computed(() => !order.value || !auth.canAccessOrder(order.value))
 const date = computed(() => new Date(order.value?.createdAt || Date.now()).toLocaleDateString('fa-IR'))
+const paidStatuses = [
+  ORDER_STATUS.APPROVED,
+  ORDER_STATUS.PREPARING,
+  ORDER_STATUS.SHIPPED,
+  ORDER_STATUS.DELIVERED,
+]
+const isProforma = computed(() => !paidStatuses.includes(order.value?.status))
 
 function print() {
   window.print()

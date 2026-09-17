@@ -35,6 +35,8 @@ html {
   overflow-y: auto;
   overflow-y: overlay;
   scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
+  scroll-padding-bottom: 6.5rem;
 }
 
 body {
@@ -181,12 +183,57 @@ textarea {
   font-weight: 600;
 }
 
+button,
+a {
+  touch-action: manipulation;
+}
+
 .field {
   width: 100%;
+  min-height: 44px;
   border: 1px solid var(--color-line);
   border-radius: 14px;
   padding: 12px 14px;
   background: var(--color-bone);
+}
+
+textarea.field {
+  min-height: 7rem;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.field-required {
+  color: var(--color-ember);
+}
+
+.field-wrap {
+  position: relative;
+}
+
+.field-wrap .field {
+  padding-inline-end: 3rem;
+}
+
+.field-toggle {
+  position: absolute;
+  inset-inline-end: 0.15rem;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ash);
+  cursor: pointer;
+  transform: translateY(-50%);
 }
 
 /* vue-toastification — Vazirmatn + icons */

@@ -44,67 +44,69 @@
         </div>
 
         <div class="rounded-2xl bg-sand/70 px-4 py-3">
-          <p class="text-2xl font-bold">{{ formatPrice(product.price) }} تومان</p>
+          <p class="text-2xl font-bold">{{ displayPrice(product) }}</p>
           <p class="text-xs text-steel mt-1">
-            پرداخت کارت‌به‌کارت ·
-            {{ outOfStock ? 'ناموجود' : `موجودی ${product.stock} عدد` }}
+            <template v-if="isPriceOnRequest(product)">برای اعلام قیمت و موجودی با فروشگاه تماس بگیرید.</template>
+            <template v-else>
+              پرداخت کارت‌به‌کارت ·
+              {{ outOfStock ? 'ناموجود' : `موجودی ${product.stock} عدد` }}
+            </template>
           </p>
         </div>
 
-        <div class="rounded-2xl border border-sand p-4 space-y-3">
-          <p class="text-sm font-bold">نحوه ارسال</p>
-          <div class="grid sm:grid-cols-2 gap-2 text-sm">
-            <p class="rounded-xl bg-bone px-3 py-2.5 leading-6">
-              <span class="block text-[11px] text-ember mb-0.5">تهران</span>
-              انتخاب روز و بازه ساعت در تسویه
-            </p>
-            <p class="rounded-xl bg-bone px-3 py-2.5 leading-6">
-              <span class="block text-[11px] text-ember mb-0.5">شهرستان</span>
-              ۳ تا ۷ روز کاری با تیپاکس، ماهکس یا پست
-            </p>
-          </div>
-        </div>
+        <ul v-if="product.features?.length" class="product-features" aria-label="ویژگی‌های محصول">
+          <li v-for="feature in product.features" :key="feature">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span>{{ feature }}</span>
+          </li>
+        </ul>
 
         <div>
           <label class="block text-sm mb-2" for="product-size">سایز</label>
           <select
             id="product-size"
             v-model="size"
-            class="w-full rounded-xl border border-[#ddd4c8] px-3 py-2.5 bg-white"
+            class="w-full min-h-11 rounded-xl border border-[#ddd4c8] px-3 py-2.5 bg-white"
           >
             <option v-for="item in product.sizes" :key="item" :value="item">{{ item }}</option>
           </select>
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-          <label class="text-sm" for="product-qty">تعداد</label>
-          <input
-            id="product-qty"
-            v-model.number="quantity"
-            type="number"
-            min="1"
-            :max="product.stock || 1"
-            inputmode="numeric"
-            class="w-20 rounded-xl border border-[#ddd4c8] px-3 py-2.5"
-          />
-          <button class="btn btn-primary" :disabled="outOfStock" @click="add">
-            {{ outOfStock ? 'ناموجود' : 'افزودن به سبد' }}
-          </button>
+          <template v-if="isPriceOnRequest(product)">
+            <button class="btn btn-primary min-h-11" type="button" @click="contact.openWidget(product)">
+              جهت خرید تماس بگیرید
+            </button>
+          </template>
+          <template v-else>
+            <label class="text-sm" for="product-qty">تعداد</label>
+            <input
+              id="product-qty"
+              v-model.number="quantity"
+              type="number"
+              min="1"
+              :max="product.stock || 1"
+              inputmode="numeric"
+              class="w-20 min-h-11 rounded-xl border border-[#ddd4c8] px-3 py-2.5"
+            />
+            <button class="btn btn-primary" type="button" :disabled="outOfStock" @click="add">
+              {{ outOfStock ? 'ناموجود' : 'افزودن به سبد' }}
+            </button>
+          </template>
           <button class="btn btn-ghost" type="button" @click="contact.openWidget(product)">
             مشاوره این محصول
           </button>
         </div>
 
-        <ul class="grid grid-cols-3 gap-2" aria-label="تعهد ارسال و کیفیت">
-          <li
-            v-for="item in productTrust"
-            :key="item.title"
-            class="rounded-2xl border border-sand bg-bone/80 px-2 py-3 text-center"
-          >
-            <span class="mx-auto mb-1.5 grid h-8 w-8 place-items-center rounded-xl bg-sand text-ember text-sm">
+        <ul class="product-trust" aria-label="تعهد فروشگاه">
+          <li v-for="item in productTrust" :key="item.title">
+            <span class="product-trust__icon">
               <i :class="item.icon" aria-hidden="true"></i>
             </span>
-            <span class="block text-[11px] sm:text-xs font-semibold leading-5">{{ item.title }}</span>
+            <span class="product-trust__copy">
+              <strong>{{ item.title }}</strong>
+              <em>{{ item.subtitle }}</em>
+            </span>
           </li>
         </ul>
       </div>
@@ -113,20 +115,11 @@
     <section class="surface-card p-5 sm:p-6 mt-6">
       <h2 class="font-bold mb-3">درباره محصول</h2>
       <p class="leading-8 text-steel text-sm sm:text-base">{{ product.description }}</p>
-      <ul
-        v-if="product.features?.length"
-        class="mt-4 grid gap-2 text-sm sm:text-base text-steel leading-7"
-      >
-        <li v-for="feature in product.features" :key="feature" class="flex gap-2">
-          <i class="fa-solid fa-check mt-1.5 text-ember text-xs" aria-hidden="true"></i>
-          <span>{{ feature }}</span>
-        </li>
-      </ul>
-      <h3 class="font-bold mt-6 mb-3">مشخصات</h3>
-      <dl class="grid sm:grid-cols-2 gap-2 text-sm">
-        <div v-for="row in specs" :key="row.label" class="rounded-xl bg-bone px-3 py-2.5 flex justify-between gap-3">
-          <dt class="text-steel">{{ row.label }}</dt>
-          <dd class="font-semibold text-end">{{ row.value }}</dd>
+      <h3 class="font-bold mt-6 mb-2">مشخصات</h3>
+      <dl class="spec-table">
+        <div v-for="row in specs" :key="row.label" class="spec-row">
+          <dt>{{ row.label }}</dt>
+          <dd>{{ row.value }}</dd>
         </div>
       </dl>
     </section>
@@ -138,7 +131,11 @@
       </div>
     </section>
   </section>
-  <section v-else class="container-shop py-20 text-center">محصول پیدا نشد.</section>
+  <section v-else class="container-shop py-20 text-center">
+    <p class="font-bold mb-2">این محصول در کاتالوگ نیست</p>
+    <p class="text-sm text-steel mb-5">لینک ممکن است قدیمی باشد. از کاتالوگ دوباره انتخاب کنید.</p>
+    <router-link to="/products" class="btn btn-primary min-h-11">بازگشت به کاتالوگ</router-link>
+  </section>
 </template>
 
 <script setup>
@@ -148,7 +145,7 @@ import ProductCard from '@/components/ProductCard.vue'
 import { useProductStore } from '@/stores/productStore'
 import { useCartStore } from '@/stores/cartStore'
 import { asset } from '@/utils/asset'
-import { formatPrice } from '@/utils/money'
+import { displayPrice, isPriceOnRequest } from '@/utils/money'
 import { applySeo, productJsonLd, setJsonLd, absoluteUrl } from '@/utils/seo'
 import { useToast } from 'vue-toastification'
 import { useContactStore } from '@/stores/contactStore'
@@ -166,9 +163,10 @@ const size = ref('')
 const quantity = ref(1)
 
 const productTrust = [
-  { icon: 'fa-solid fa-city', title: 'تهران: روز دلخواه' },
-  { icon: 'fa-solid fa-truck', title: 'شهرستان ۳–۷ روز' },
-  { icon: 'fa-solid fa-certificate', title: 'ضمانت اصالت' },
+  { icon: 'fa-solid fa-truck', title: 'حمل و نقل', subtitle: 'ارسال مرسوله' },
+  { icon: 'fa-solid fa-rotate-left', title: 'بازپرداخت پول', subtitle: 'ضمانت ۳۰ روزه' },
+  { icon: 'fa-solid fa-headset', title: 'پشتیبانی ۲۴ ساعته', subtitle: 'در تمام روزهای هفته' },
+  { icon: 'fa-solid fa-shield-halved', title: 'امنیت پرداخت', subtitle: 'توسط کلیه کارت‌ها' },
 ]
 
 const specs = computed(() => {
@@ -223,7 +221,15 @@ onBeforeUnmount(() => {
 })
 
 function add() {
-  if (!product.value || outOfStock.value) {
+  if (!product.value) {
+    toast.error('این کالا فعلاً موجود نیست')
+    return
+  }
+  if (isPriceOnRequest(product.value)) {
+    contact.openWidget(product.value)
+    return
+  }
+  if (outOfStock.value) {
     toast.error('این کالا فعلاً موجود نیست')
     return
   }
@@ -233,3 +239,130 @@ function add() {
 }
 
 </script>
+
+<style scoped>
+.product-features {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.product-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--color-ink, #1c1916);
+}
+
+.product-features i {
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--color-ember, #c45c26);
+}
+
+.product-trust {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.product-trust li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-height: 4.25rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--color-line, #ddd4c8);
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.product-trust__icon {
+  display: grid;
+  width: 2.1rem;
+  height: 2.1rem;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 0.7rem;
+  background: var(--color-sand, #efe6d8);
+  color: var(--color-ember, #c45c26);
+  font-size: 0.85rem;
+}
+
+.product-trust__copy {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.product-trust__copy strong {
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.product-trust__copy em {
+  font-style: normal;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--color-ash, #6b6560);
+}
+
+@media (min-width: 1024px) {
+  .product-trust {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.spec-table {
+  display: grid;
+  margin: 0;
+  border: 1px solid var(--color-line, #d9d0c3);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.spec-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: baseline;
+  gap: 1rem;
+  margin: 0;
+  padding: 0.45rem 0.9rem;
+  border-bottom: 1px solid var(--color-line, #d9d0c3);
+}
+
+.spec-row:nth-child(odd) {
+  background: #faf8f4;
+}
+
+.spec-row:last-child {
+  border-bottom: 0;
+}
+
+.spec-row dt {
+  flex: 0 0 8rem;
+  width: 8rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--color-ash, #6b6560);
+}
+
+.spec-row dd {
+  flex: 0 1 auto;
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.55;
+  text-align: start;
+}
+</style>

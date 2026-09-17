@@ -1,8 +1,8 @@
 export const defaultGuarantee = {
   kicker: 'تعهد فروشگاه',
   title: 'ارسال سریع، اصالت و کیفیت کالا',
-  lead: 'هر سفارش با همان دقتی بررسی می‌شود که تیم عملیات به تجهیزاتش تکیه می‌کند.',
-  image: 'images/hero/fire-ops.jpg',
+  lead: 'قبل از حرکت محموله، برند، موجودی و مشخصات همان سفارشی که ثبت کرده‌اید بررسی می‌شود.',
+  image: 'images/hero/ppe-guide.webp',
   cta: 'مشاوره ارسال تهران و شهرستان',
   ctaTo: '/contact',
   points: [
@@ -15,9 +15,11 @@ export const defaultGuarantee = {
 }
 
 export const guaranteeImageOptions = [
-  { label: 'آتش‌نشان در عملیات', value: 'images/hero/fire-ops.jpg' },
-  { label: 'جوشکاری صنعتی', value: 'images/hero/factory-floor.jpg' },
-  { label: 'ایستگاه آتش‌نشانی', value: 'images/hero/firehouse-wide.png' },
-  { label: 'جوشکاری و صنعت', value: 'images/hero/weld.png' },
+  { label: 'راهنمای تجهیزات ایمنی', value: 'images/hero/ppe-guide.webp' },
+  { label: 'مخروط و تجهیزات کارگاه', value: 'images/hero/site-cones.jpg' },
+  { label: 'قفسه تجهیزات ایستگاه', value: 'images/hero/firehouse-wide.png' },
   { label: 'کارگاه و PPE', value: 'images/hero/site-dusk.png' },
+  { label: 'جوشکاری صنعتی', value: 'images/hero/factory-floor.jpg' },
+  { label: 'جوشکاری و صنعت', value: 'images/hero/weld.png' },
+  { label: 'آتش‌نشان در عملیات', value: 'images/hero/fire-ops.jpg' },
 ]

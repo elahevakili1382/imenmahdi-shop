@@ -1,5 +1,5 @@
 <script setup>
-import { categoryTree } from '@/data/catalog'
+import { useProductStore } from '@/stores/productStore'
 import { formatPrice } from '@/utils/money'
 
 const COLOR_SWATCH = {
@@ -28,6 +28,7 @@ defineProps({
 })
 
 const emit = defineEmits(['toggle-category', 'toggle-size', 'toggle-color', 'update-price', 'clear'])
+const products = useProductStore()
 
 function swatch(name) {
   return COLOR_SWATCH[name] || '#C4A484'
@@ -43,7 +44,7 @@ function swatch(name) {
 
     <section class="filter-block">
       <h3>دسته‌بندی</h3>
-      <label v-for="group in categoryTree" :key="group.slug" class="filter-check">
+      <label v-for="group in products.categories" :key="group.slug" class="filter-check">
         <input
           type="checkbox"
           :checked="selectedCategories.includes(group.slug) || lockedCategory === group.slug"

@@ -4,7 +4,7 @@
       <button class="btn btn-primary" type="button" :disabled="busy || !cart.items.length" @click="downloadPdf">
         {{ busy ? 'در حال ساخت PDF…' : 'دانلود PDF' }}
       </button>
-      <button class="btn btn-dark" type="button" @click="print">چاپ فاکتور</button>
+      <button class="btn btn-dark" type="button" @click="print">چاپ پیش‌فاکتور</button>
       <router-link to="/cart" class="btn btn-ghost">بازگشت به سبد</router-link>
     </div>
 

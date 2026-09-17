@@ -25,6 +25,7 @@ export const useCartStore = defineStore('cart', {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items))
     },
     addToCart(product) {
+      if (product.priceOnRequest) return false
       if (Number(product.stock) <= 0) return false
       const size = product.size || product.sizes?.[0] || 'یک سایز'
       const existing = this.items.find((item) => item.id === product.id && item.size === size)

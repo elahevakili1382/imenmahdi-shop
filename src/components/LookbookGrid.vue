@@ -11,19 +11,35 @@ const frames = [
   {
     id: 'fire',
     title: 'تجهیزات آتش نشانی',
-    description: 'لباس عملیاتی، کلاه و چکمه برای تیم اطفا و ایستگاه.',
-    image: 'images/lookbook/fire-ops-crew.jpg',
+    description: 'لباس عملیاتی، کلاه و کپسول برای تیم اطفا و ایستگاه.',
+    image: 'images/lookbook/fire-crew.jpg',
     to: categoryTo('تجهیزات آتش نشانی'),
     featured: true,
-    position: 'center 48%',
+    position: 'center center',
+  },
+  {
+    id: 'respiratory',
+    title: 'تجهیزات تنفسی',
+    description: 'ماسک تمام‌صورت، نیم‌صورت و فیلتر برای جوش، رنگ و شیمی.',
+    image: 'images/lookbook/respiratory-panel.webp',
+    to: categoryTo('تجهیزات تنفسی'),
+    position: 'center center',
   },
   {
     id: 'ppe',
     title: 'تجهیزات حفاظت فردی',
-    description: 'کلاه، عینک و ماسک برای کارگاه، رنگ و خط تولید.',
-    image: 'images/lookbook/ppe-crew.jpg',
+    description: 'کلاه، عینک، گوشی و کفش برای کارگاه و خط تولید.',
+    image: 'images/lookbook/ppe-kit.jpg',
     to: categoryTo('تجهیزات حفاظت فردی'),
-    position: 'center 30%',
+    position: 'center 55%',
+  },
+  {
+    id: 'traffic',
+    title: 'تجهیزات ترافیکی',
+    description: 'مخروط، مانع و علائم برای ایمن‌سازی مسیر کار.',
+    image: 'images/lookbook/traffic-lts.webp',
+    to: categoryTo('تجهیزات ترافیکی'),
+    position: 'center center',
   },
   {
     id: 'height',
@@ -32,22 +48,6 @@ const frames = [
     image: 'images/lookbook/height-window.jpg',
     to: categoryTo('تجهیزات کار در ارتفاع'),
     position: 'center 35%',
-  },
-  {
-    id: 'respiratory',
-    title: 'تجهیزات تنفسی',
-    description: 'ماسک تمام‌صورت، نیم‌صورت و فیلتر برای جوش، رنگ و شیمی.',
-    image: 'images/lookbook/respiratory-painter.jpg',
-    to: categoryTo('تجهیزات تنفسی'),
-    position: 'center 22%',
-  },
-  {
-    id: 'traffic',
-    title: 'تجهیزات ترافیکی',
-    description: 'جلیقه شبرنگ، علائم و مانع برای ایمن‌سازی مسیر کار.',
-    image: 'images/lookbook/traffic-cone.jpg',
-    to: categoryTo('تجهیزات ترافیکی'),
-    position: 'left center',
   },
 ]
 </script>
@@ -114,7 +114,13 @@ const frames = [
 }
 
 .look-featured {
-  min-height: 16.5rem;
+  min-height: 18rem;
+  background: #0c0e12;
+}
+
+.look-featured img {
+  object-fit: contain;
+  object-position: center;
 }
 
 .look-card:not(.look-featured) .look-copy p {
@@ -142,7 +148,6 @@ const frames = [
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 420ms ease;
 }
 
 .look-contain {
@@ -154,9 +159,8 @@ const frames = [
   padding: 1.25rem;
 }
 
-.look-card:hover img,
-.look-card:focus-visible img {
-  transform: scale(1.05);
+.look-featured.look-contain img {
+  padding: 0;
 }
 
 .look-shade {
@@ -226,7 +230,7 @@ const frames = [
 @media (min-width: 900px) {
   .lookbook {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: minmax(280px, 1.15fr) minmax(230px, auto);
+    grid-template-rows: minmax(360px, 1.25fr) minmax(230px, auto);
     gap: 16px;
   }
 

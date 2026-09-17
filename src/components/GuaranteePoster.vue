@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import { asset } from '@/utils/asset'
 import { useContentStore } from '@/stores/contentStore'
-import PaperMeshGradient from '@/components/PaperMeshGradient.vue'
 
 const content = useContentStore()
 const poster = computed(() => content.guarantee)
@@ -10,22 +9,15 @@ const titleLines = computed(() => String(poster.value.title || '').split(/،\s*|
 </script>
 
 <template>
-  <section class="container-shop py-6 sm:py-10">
+  <section id="guarantee-poster" class="container-shop py-6 sm:py-10">
     <article class="poster">
       <div class="poster-photo">
-        <PaperMeshGradient />
-        <PaperMeshGradient
-          class="poster-mesh-soft"
-          :colors="['#0C0E12', '#F4EFE7', '#C45C26', '#C4A484']"
-          :speed="0.16"
-          :opacity="0.4"
-          :distortion="0.34"
-          :swirl="0.05"
-          :grain-mixer="0.16"
-          :grain-overlay="0.18"
+        <img
+          :src="asset(poster.image)"
+          :alt="`تجهیزات ایمنی برای ${poster.title}`"
+          loading="lazy"
+          decoding="async"
         />
-        <img :src="asset(poster.image)" :alt="poster.title" loading="lazy" decoding="async" />
-        <div class="poster-photo-fade" />
       </div>
 
       <div class="poster-panel">
@@ -69,10 +61,7 @@ const titleLines = computed(() => String(poster.value.title || '').split(/،\s*|
   position: relative;
   min-height: 300px;
   overflow: hidden;
-}
-
-.poster-mesh-soft {
-  mix-blend-mode: screen;
+  background: #2f6ec4;
 }
 
 .poster-photo img {
@@ -80,16 +69,8 @@ const titleLines = computed(() => String(poster.value.title || '').split(/،\s*|
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 22%;
-  opacity: 0.72;
-  mix-blend-mode: luminosity;
-}
-
-.poster-photo-fade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(12, 14, 18, 0.08) 40%, rgba(12, 14, 18, 0.72));
+  object-fit: contain;
+  object-position: center;
 }
 
 .poster-panel {
@@ -189,10 +170,6 @@ const titleLines = computed(() => String(poster.value.title || '').split(/،\s*|
 
   .poster-photo {
     min-height: 100%;
-  }
-
-  .poster-photo-fade {
-    background: linear-gradient(90deg, rgba(12, 14, 18, 0.12), rgba(12, 14, 18, 0.42));
   }
 
   .poster-panel {

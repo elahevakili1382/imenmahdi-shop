@@ -12,8 +12,11 @@
       <router-link to="/products" class="btn btn-ghost min-h-11">ادامه خرید</router-link>
     </div>
 
-    <div v-if="!cart.items.length" class="surface-card p-10 text-center">
-      <p class="mb-4">سبد خالی است.</p>
+    <div v-if="!cart.items.length" class="surface-card p-10 text-center max-w-md mx-auto">
+      <p class="font-bold mb-2">سبد خرید خالی است</p>
+      <p class="text-sm text-steel leading-7 mb-5">
+        کالای ایمنی را از کاتالوگ انتخاب کنید تا تعداد، سایز و پیش‌فاکتور اینجا جمع شود.
+      </p>
       <router-link to="/products" class="btn btn-primary min-h-11">شروع خرید از کاتالوگ</router-link>
     </div>
 

@@ -1,18 +1,19 @@
 <script setup>
-import { ref } from 'vue'
-import { categoryTree } from '@/data/catalog'
+import { computed, ref } from 'vue'
+import { useProductStore } from '@/stores/productStore'
 import { baleLink, productInquiryText, shopContact, telLink, whatsappLink } from '@/data/contact'
 import { isIranMobile, useLeadStore } from '@/stores/leadStore'
 import { useToast } from 'vue-toastification'
 
 const toast = useToast()
 const leads = useLeadStore()
+const products = useProductStore()
 const phone = ref('')
 const accepted = ref(false)
 const joined = ref(false)
 const root = ref(null)
 
-const shopGroups = [
+const shopGroups = computed(() => [
   {
     title: 'خرید',
     links: [
@@ -24,7 +25,7 @@ const shopGroups = [
   },
   {
     title: 'دسته‌ها',
-    links: categoryTree.map((group) => ({
+    links: products.categories.map((group) => ({
       label: group.name,
       to: `/products/category/${group.slug}`,
     })),
@@ -38,7 +39,7 @@ const shopGroups = [
       { label: 'مشاوره سایز', to: '/contact' },
     ],
   },
-]
+])
 
 function onPointerMove(event) {
   const el = root.value

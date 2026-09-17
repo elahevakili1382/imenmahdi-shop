@@ -37,7 +37,8 @@ import ContactPopup from '@/components/ContactPopup.vue'
   color: #f4efe7;
 }
 
-.skip-link:focus {
+.skip-link:focus,
+.skip-link:focus-visible {
   top: 0.75rem;
 }
 
@@ -47,7 +48,7 @@ import ContactPopup from '@/components/ContactPopup.vue'
 
 @media (max-width: 1023px) {
   .shop-main {
-    padding-bottom: calc(6.25rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
   }
 }
 </style>

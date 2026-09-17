@@ -4,6 +4,7 @@ export const categoryTree = [
   {
     name: 'تجهیزات حفاظت فردی',
     icon: 'fa-solid fa-helmet-safety',
+    image: 'images/categories/ppe-helmet.png',
     children: [
       'کلاه ایمنی',
       'ماسک ایمنی',
@@ -20,11 +21,13 @@ export const categoryTree = [
   {
     name: 'تجهیزات تنفسی',
     icon: 'fa-solid fa-lungs',
+    image: 'images/categories/respiratory.png',
     children: ['ماسک تمام‌صورت', 'ماسک نیم‌صورت', 'فیلتر تنفسی'],
   },
   {
     name: 'تجهیزات آتش نشانی',
     icon: 'fa-solid fa-fire',
+    image: 'images/categories/fire-suit.png',
     children: [
       'لباس آتش نشانی',
       'کلاه آتش نشانی',
@@ -37,16 +40,19 @@ export const categoryTree = [
   {
     name: 'تجهیزات ترافیکی',
     icon: 'fa-solid fa-traffic-light',
+    image: 'images/categories/traffic.png',
     children: ['تابلو و علائم', 'مانع ترافیکی', 'چراغ‌های ترافیکی', 'جلیقه شبرنگ'],
   },
   {
     name: 'تجهیزات کار در ارتفاع',
     icon: 'fa-solid fa-person-falling',
+    image: 'images/categories/height-harness.png',
     children: ['کلاه کار در ارتفاع', 'کمربند ایمنی', 'لیمیتر سقوط'],
   },
 ].map((group) => ({
   name: group.name,
   icon: group.icon,
+  image: group.image,
   slug: slugify(group.name),
   children: group.children.map((name) => ({ name, slug: slugify(name) })),
 }))
