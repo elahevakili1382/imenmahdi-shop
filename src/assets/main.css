@@ -242,15 +242,29 @@ textarea.field {
   z-index: 9999;
 }
 
+.Vue-Toastification__container.top-right,
+.Vue-Toastification__container.top-left {
+  top: 1rem !important;
+  right: 1rem !important;
+  left: auto !important;
+  padding: 0 !important;
+  width: auto !important;
+  max-width: min(22rem, calc(100vw - 2rem));
+}
+
 .Vue-Toastification__toast,
 .imen-toast {
   font-family: 'Vazirmatn Variable', Vazirmatn, Tahoma, sans-serif !important;
   direction: rtl;
   text-align: right;
-  border-radius: 14px !important;
-  min-height: 52px;
-  padding: 12px 14px !important;
-  box-shadow: 0 12px 28px rgba(12, 14, 18, 0.14) !important;
+  width: auto !important;
+  max-width: 22rem;
+  min-width: 15rem;
+  min-height: 48px;
+  margin: 0 0 0.6rem !important;
+  padding: 11px 13px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 24px rgba(12, 14, 18, 0.1) !important;
   gap: 10px;
 }
 
@@ -301,15 +315,55 @@ textarea.field {
 }
 
 @media (max-width: 639px) {
-  .Vue-Toastification__container {
-    padding: 10px !important;
-    width: 100% !important;
+  .Vue-Toastification__container.top-right,
+  .Vue-Toastification__container.top-left {
+    top: 0.75rem !important;
+    right: 0.75rem !important;
+    left: auto !important;
+    padding: 0 !important;
+    width: auto !important;
+    max-width: min(20rem, calc(100vw - 1.5rem));
   }
 
   .Vue-Toastification__toast,
   .imen-toast {
-    width: 100% !important;
-    margin-bottom: 8px !important;
+    width: auto !important;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+.imen-toast-soft-enter-active,
+.imen-toast-soft-leave-active {
+  transition:
+    opacity 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.imen-toast-soft-enter-from,
+.imen-toast-soft-leave-to {
+  opacity: 0;
+  transform: translate3d(0, -12px, 0);
+}
+
+.imen-toast-soft-leave-active {
+  position: absolute;
+}
+
+.imen-toast-soft-move {
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .imen-toast-soft-enter-active,
+  .imen-toast-soft-leave-active,
+  .imen-toast-soft-move {
+    transition: none;
+  }
+
+  .imen-toast-soft-enter-from,
+  .imen-toast-soft-leave-to {
+    transform: none;
   }
 }
 

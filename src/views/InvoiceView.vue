@@ -61,7 +61,7 @@
 
       <footer class="mt-6 text-sm">
         <p>جمع کالا: {{ formatPrice(order.subtotal || order.total) }} تومان</p>
-        <p>هزینه ارسال: {{ order.shippingPrice ? formatPrice(order.shippingPrice) + ' تومان' : 'پس از هماهنگی' }}</p>
+        <p>هزینه ارسال: {{ shippingCostLine }}</p>
         <p class="text-lg font-bold mt-2">مبلغ کل: {{ formatPrice(order.total) }} تومان</p>
         <p class="mt-6 text-steel">
           {{
@@ -83,6 +83,7 @@ import { useOrderStore } from '@/stores/orderStore'
 import { useShippingStore } from '@/stores/shippingStore'
 import { statusLabel, ORDER_STATUS } from '@/data/orderStatus'
 import { formatPrice } from '@/utils/money'
+import { shippingFeeShort } from '@/data/shipping'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -98,6 +99,12 @@ const paidStatuses = [
   ORDER_STATUS.DELIVERED,
 ]
 const isProforma = computed(() => !paidStatuses.includes(order.value?.status))
+const shippingCostLine = computed(() => {
+  const short = shippingFeeShort(order.value?.shipping)
+  if (short) return short
+  if (order.value?.shippingPrice) return `${formatPrice(order.value.shippingPrice)} تومان`
+  return 'پس از هماهنگی'
+})
 
 function print() {
   window.print()

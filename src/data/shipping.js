@@ -1,19 +1,25 @@
+export const DELIVERY_FEE_SHORT = 'در زمان تحویل کالا محاسبه می‌گردد'
+export const DELIVERY_FEE_NOTE =
+  'هزینه ارسال در زمان تحویل کالا محاسبه و از گیرنده دریافت می‌گردد.'
+
 export const tehranMethods = [
   {
     id: 'tehran-courier',
     zone: 'tehran',
     name: 'پیک فروشگاه',
     eta: 'روز و بازه انتخابی شما',
-    price: 75000,
-    note: 'داخل محدوده تهران. بعد از تایید رسید در همان بازه هماهنگ می‌شود',
+    price: 0,
+    payOnDelivery: true,
+    note: DELIVERY_FEE_NOTE,
   },
   {
     id: 'tehran-express',
     zone: 'tehran',
     name: 'ارسال فوری تهران',
     eta: 'همان روز در بازه انتخابی',
-    price: 125000,
-    note: 'اگر رسید تا ظهر تایید شود، همان روز ارسال می‌شود',
+    price: 0,
+    payOnDelivery: true,
+    note: DELIVERY_FEE_NOTE,
   },
 ]
 
@@ -86,16 +92,20 @@ export function normalizeTehranSlots(slots) {
 }
 
 export function withShippingSettings(settings = defaultShippingSettings) {
-  const courier = Number(settings.tehranCourierPrice ?? defaultShippingSettings.tehranCourierPrice)
-  const express = Number(settings.tehranExpressPrice ?? defaultShippingSettings.tehranExpressPrice)
   return {
-    tehran: tehranMethods.map((item) => {
-      if (item.id === 'tehran-courier') return { ...item, price: courier }
-      if (item.id === 'tehran-express') return { ...item, price: express }
-      return { ...item }
-    }),
+    tehran: tehranMethods.map((item) => ({ ...item, price: 0, payOnDelivery: true })),
     county: countyMethods.map((item) => ({ ...item })),
   }
+}
+
+export function chargesAtDelivery(method) {
+  return Boolean(method?.payOnDelivery)
+}
+
+export function shippingFeeShort(method) {
+  if (chargesAtDelivery(method)) return DELIVERY_FEE_SHORT
+  if (!Number(method?.price)) return 'کرایه پس از هماهنگی'
+  return ''
 }
 
 export function getShipping(id) {

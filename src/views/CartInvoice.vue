@@ -67,7 +67,9 @@
       <footer class="mt-6 text-sm">
         <p>تعداد اقلام: {{ cart.totalCount }}</p>
         <p class="text-lg font-bold mt-2">مبلغ کل کالا: {{ formatPrice(cart.totalPrice) }} تومان</p>
-        <p class="mt-2 text-steel">هزینه ارسال بعد از انتخاب تهران یا شهرستان در تسویه مشخص می‌شود.</p>
+        <p class="mt-2 text-steel">
+          هزینه پیک فروشگاه و ارسال فوری در زمان تحویل کالا محاسبه و از گیرنده دریافت می‌گردد.
+        </p>
       </footer>
     </article>
   </div>

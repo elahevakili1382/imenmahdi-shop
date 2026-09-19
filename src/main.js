@@ -50,6 +50,8 @@ app.use(Toast, {
   closeOnClick: true,
   icon: true,
   rtl: true,
+  hideProgressBar: true,
+  transition: 'imen-toast-soft',
   toastClassName: 'imen-toast',
   bodyClassName: 'imen-toast__body',
   closeButtonClassName: 'imen-toast__close',

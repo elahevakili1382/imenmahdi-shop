@@ -85,9 +85,9 @@ function admin(req, res, next) {
 
 function resolveShipping(id) {
   const base = catalogShipping(id)
-  const settings = { ...defaultShippingSettings, ...(load().shipping || {}) }
-  if (id === 'tehran-courier') return { ...base, price: Number(settings.tehranCourierPrice) || 0 }
-  if (id === 'tehran-express') return { ...base, price: Number(settings.tehranExpressPrice) || 0 }
+  if (id === 'tehran-courier' || id === 'tehran-express') {
+    return { ...base, price: 0, payOnDelivery: true }
+  }
   return base
 }
 

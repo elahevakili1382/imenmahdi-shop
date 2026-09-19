@@ -30,12 +30,6 @@ function prev() {
   go(index.value - 1)
 }
 
-function togglePause() {
-  const shouldPause = !paused.value
-  userPaused.value = shouldPause
-  if (!shouldPause) hoverPaused.value = false
-}
-
 function onHeroFocusOut(event) {
   if (!event.currentTarget.contains(event.relatedTarget)) hoverPaused.value = false
 }
@@ -75,7 +69,7 @@ onBeforeUnmount(() => {
 
 <template>
   <section
-    class="relative isolate overflow-hidden bg-night text-stone min-h-[34rem] sm:min-h-[68vh]"
+    class="relative isolate overflow-hidden bg-night text-stone min-h-[22rem] sm:min-h-[48vh]"
     aria-roledescription="carousel"
     aria-label="بنر فروشگاه"
     @mouseenter="hoverPaused = true"
@@ -100,37 +94,31 @@ onBeforeUnmount(() => {
       <ShaderLayer :intensity="0.9" />
     </div>
 
-    <div class="container-shop relative z-10 flex min-h-[34rem] sm:min-h-[68vh] flex-col justify-end pb-8 pt-24">
-      <p class="kicker mb-4 flex items-center gap-3 text-copper">
+    <div class="container-shop relative z-10 flex min-h-[22rem] sm:min-h-[48vh] flex-col justify-end pb-7 pt-20">
+      <p class="kicker mb-3 flex items-center gap-3 text-copper">
         <span class="h-px w-10 bg-ember" />
         {{ slides[index]?.kicker }}
       </p>
       <motion.h1
         :key="slides[index]?.headline"
-        class="display-title max-w-3xl mb-4"
+        class="display-title max-w-3xl mb-3"
         :initial="reduceMotion ? false : { opacity: 0, y: 18 }"
         :animate="{ opacity: 1, y: 0 }"
         :transition="{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }"
       >
         {{ slides[index]?.headline }}
       </motion.h1>
-      <p class="max-w-xl text-white/72 text-base sm:text-lg leading-8 mb-6">{{ slides[index]?.copy }}</p>
-      <div class="flex flex-wrap items-center gap-3 mb-8">
-        <router-link :to="slides[index]?.to || '/products'" class="btn btn-primary">
+      <p class="max-w-xl text-white/72 text-sm sm:text-base leading-7 mb-5">{{ slides[index]?.copy }}</p>
+      <div class="flex flex-wrap items-center gap-3 mb-6">
+        <router-link :to="slides[index]?.to || '/products'" class="btn btn-primary min-h-11">
           {{ slides[index]?.cta }}
+        </router-link>
+        <router-link to="/products" class="btn btn-ghost min-h-11 hero-catalog">
+          همه محصولات
         </router-link>
         <div v-if="slides.length > 1" class="flex items-center gap-2">
           <button class="hero-ctrl" type="button" aria-label="اسلاید قبلی" @click="prev">
             <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-          </button>
-          <button
-            class="hero-ctrl"
-            type="button"
-            :aria-label="paused ? 'پخش اسلایدها' : 'توقف اسلایدها'"
-            :aria-pressed="paused"
-            @click="togglePause"
-          >
-            <i :class="paused ? 'fa-solid fa-play' : 'fa-solid fa-pause'" aria-hidden="true"></i>
           </button>
           <button class="hero-ctrl" type="button" aria-label="اسلاید بعدی" @click="next">
             <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
@@ -138,27 +126,17 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div class="grid gap-2 sm:grid-cols-3">
+      <div v-if="slides.length > 1" class="hero-dots" role="tablist" aria-label="اسلایدهای بنر">
         <button
           v-for="(slide, i) in slides"
           :key="slide.image"
           type="button"
-          class="group flex items-start gap-3 rounded-2xl border px-4 py-3 text-right transition"
-          :class="
-            i === index
-              ? 'border-ember/70 bg-white/10'
-              : 'border-white/10 bg-black/20 hover:border-white/25'
-          "
+          class="hero-dot"
+          :class="{ 'is-on': i === index }"
+          :aria-label="slide.kicker || `اسلاید ${i + 1}`"
           :aria-current="i === index ? 'true' : undefined"
-          :aria-label="slide.headline || slide.kicker"
           @click="go(i)"
-        >
-          <span class="text-xs tabular-nums text-copper pt-0.5">{{ String(i + 1).padStart(2, '0') }}</span>
-          <span>
-            <span class="block text-sm font-semibold">{{ slide.kicker }}</span>
-            <span class="block text-[12px] text-white/55 mt-0.5 leading-5">{{ slide.cta }}</span>
-          </span>
-        </button>
+        />
       </div>
     </div>
   </section>
@@ -175,6 +153,45 @@ onBeforeUnmount(() => {
   background: rgba(12, 14, 18, 0.35);
   color: #f4efe7;
   cursor: pointer;
+}
+
+.hero-ctrl:hover,
+.hero-ctrl:focus-visible {
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.hero-catalog {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #f4efe7;
+}
+
+.hero-dots {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.hero-dot {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.hero-dot::after {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.hero-dot.is-on::after {
+  width: 1.25rem;
+  background: #c45c26;
 }
 
 .hero-frame {

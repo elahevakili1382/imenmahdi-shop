@@ -1,7 +1,44 @@
 <template>
   <section class="container-shop py-8 sm:py-10 min-w-0">
-    <p class="text-sm text-steel mb-2">دسته‌بندی</p>
-    <h1 class="text-2xl sm:text-3xl font-bold mb-6">{{ title }}</h1>
+    <p class="text-sm text-steel mb-2">
+      <router-link to="/" class="hover:text-ember">خانه</router-link>
+      <span> / </span>
+      <router-link to="/products" class="hover:text-ember">کاتالوگ</router-link>
+      <span> / </span>
+      {{ title }}
+    </p>
+    <h1 class="text-2xl sm:text-3xl font-bold mb-2">{{ title }}</h1>
+    <div class="list-toolbar">
+      <p class="text-sm text-steel">{{ formatCount(visible.length) }} کالا</p>
+      <label class="sort-field">
+        <span class="sr-only">مرتب‌سازی</span>
+        <select :value="sortMode" @change="setSort($event.target.value)">
+          <option v-for="option in SORT_OPTIONS" :key="option.id" :value="option.id">
+            {{ option.label }}
+          </option>
+        </select>
+      </label>
+    </div>
+
+    <div v-if="childLinks.length" class="cat-chips" aria-label="زیردسته‌ها">
+      <router-link
+        v-if="parentSlug"
+        :to="`/products/category/${parentSlug}`"
+        class="cat-chip"
+        :class="{ 'is-on': slug === parentSlug }"
+      >
+        همه {{ parentGroup?.name }}
+      </router-link>
+      <router-link
+        v-for="child in childLinks"
+        :key="child.slug"
+        :to="`/products/category/${child.slug}`"
+        class="cat-chip"
+        :class="{ 'is-on': slug === child.slug }"
+      >
+        {{ child.name }}
+      </router-link>
+    </div>
 
     <div class="lg:hidden mb-4">
       <button class="btn btn-dark min-h-11 text-sm w-full sm:w-auto" type="button" @click="filtersOpen = !filtersOpen">
@@ -49,6 +86,7 @@ import ProductCard from '@/components/ProductCard.vue'
 import ProductFilters from '@/components/ProductFilters.vue'
 import { useProductStore } from '@/stores/productStore'
 import { isPriceOnRequest } from '@/utils/money'
+import { SORT_OPTIONS, formatCount, sortProducts } from '@/utils/catalogSort'
 import { applySeo } from '@/utils/seo'
 
 const route = useRoute()
@@ -58,6 +96,10 @@ const filtersOpen = ref(false)
 const slug = computed(() => String(route.params.categorySlug || ''))
 const selectedSizes = computed(() => listQuery('sizes'))
 const selectedColors = computed(() => listQuery('colors'))
+const sortMode = computed(() => {
+  const value = String(route.query.sort || 'popular')
+  return SORT_OPTIONS.some((option) => option.id === value) ? value : 'popular'
+})
 
 const scoped = computed(() => store.byCategory(slug.value))
 const prices = computed(() => scoped.value.map((item) => Number(item.price) || 0))
@@ -72,15 +114,16 @@ const price = computed(() => ({
 const availableSizes = computed(() => uniqueOf(scoped.value.flatMap((item) => item.sizes || [])))
 const availableColors = computed(() => uniqueOf(scoped.value.flatMap((item) => item.colors || [])))
 
-const visible = computed(() =>
-  scoped.value.filter((item) => {
+const visible = computed(() => {
+  const filtered = scoped.value.filter((item) => {
     const sizeOk =
       !selectedSizes.value.length || (item.sizes || []).some((size) => selectedSizes.value.includes(size))
     const colorOk =
       !selectedColors.value.length || (item.colors || []).some((color) => selectedColors.value.includes(color))
     return sizeOk && colorOk && (isPriceOnRequest(item) || (item.price >= price.value.min && item.price <= price.value.max))
-  }),
-)
+  })
+  return sortProducts(filtered, sortMode.value)
+})
 
 const title = computed(() => {
   for (const group of store.categories) {
@@ -90,6 +133,14 @@ const title = computed(() => {
   }
   return slug.value.replace(/-/g, ' ')
 })
+
+const parentGroup = computed(() =>
+  store.categories.find(
+    (group) => group.slug === slug.value || group.children.some((child) => child.slug === slug.value),
+  ),
+)
+const parentSlug = computed(() => parentGroup.value?.slug || '')
+const childLinks = computed(() => parentGroup.value?.children || [])
 
 watch(
   title,
@@ -143,4 +194,74 @@ function clearFilters() {
   delete next.max
   router.replace({ query: next })
 }
+
+function setSort(value) {
+  patchQuery({ sort: value === 'popular' ? undefined : value })
+}
 </script>
+
+<style scoped>
+.list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.sort-field select {
+  min-height: 2.75rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cat-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+  scrollbar-width: none;
+}
+
+.cat-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.cat-chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cat-chip.is-on {
+  border-color: var(--color-ember);
+  background: color-mix(in srgb, var(--color-ember) 12%, #fff);
+  color: var(--color-ember);
+}
+
+@media (min-width: 768px) {
+  .cat-chips {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+</style>

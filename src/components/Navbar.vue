@@ -17,7 +17,7 @@
         </router-link>
 
         <form
-          class="flex min-w-0 flex-1 lg:hidden"
+          class="search-wrap flex min-w-0 flex-1 lg:hidden"
           @submit.prevent="search"
         >
           <div
@@ -29,9 +29,12 @@
               id="site-search-mobile"
               v-model="query"
               type="search"
-              placeholder="جستجو..."
+              placeholder="جستجو محصول..."
               class="h-full min-w-0 flex-1 border-0 bg-transparent px-3 text-sm"
               :class="overlay ? 'text-stone placeholder:text-white/45' : 'text-ink'"
+              autocomplete="off"
+              @focus="suggestOpen = true"
+              @input="suggestOpen = true"
             />
             <button
               class="h-full shrink-0 px-3 text-sm font-semibold text-stone"
@@ -42,29 +45,70 @@
               <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
             </button>
           </div>
+          <div v-if="showSuggest" class="search-suggest" role="listbox" aria-label="پیشنهاد محصولات">
+            <router-link
+              v-for="item in suggestions"
+              :key="item.id"
+              :to="`/products/${item.slug}`"
+              class="search-suggest__item"
+              role="option"
+              @click="suggestOpen = false"
+            >
+              <img v-if="item.image" :src="asset(item.image)" alt="" />
+              <span class="search-suggest__copy">
+                <span>{{ item.title }}</span>
+                <strong>{{ displayPrice(item) }}</strong>
+              </span>
+            </router-link>
+            <p v-if="!suggestions.length" class="search-suggest__empty">کالایی با این نام در لیست نیست.</p>
+            <button type="submit" class="search-suggest__all">مشاهده همه نتایج</button>
+          </div>
         </form>
 
-        <form
-          class="hidden lg:flex flex-1 max-w-xl h-11 items-stretch overflow-hidden rounded-full border"
-          :class="overlay ? 'border-white/15 bg-white/10' : 'border-sand bg-bone'"
-          @submit.prevent="search"
-        >
-          <label class="sr-only" for="site-search">جستجوی محصولات</label>
-          <input
-            id="site-search"
-            v-model="query"
-            type="search"
-            placeholder="جستجوی کلاه، ماسک، لباس آتش‌نشانی..."
-            class="h-full min-w-0 flex-1 border-0 bg-transparent px-4 text-sm"
-            :class="overlay ? 'text-stone placeholder:text-white/45' : 'text-ink'"
-          />
-          <button
-            class="h-full min-h-0 shrink-0 rounded-none px-5 text-sm font-semibold bg-night text-stone hover:bg-ink"
-            type="submit"
+        <div class="search-wrap hidden lg:block flex-1 max-w-xl relative">
+          <form
+            class="flex h-11 w-full items-stretch overflow-hidden rounded-full border"
+            :class="overlay ? 'border-white/15 bg-white/10' : 'border-sand bg-bone'"
+            @submit.prevent="search"
           >
-            جستجو
-          </button>
-        </form>
+            <label class="sr-only" for="site-search">جستجوی محصولات</label>
+            <input
+              id="site-search"
+              v-model="query"
+              type="search"
+              placeholder="جستجوی کلاه، ماسک، لباس آتش‌نشانی..."
+              class="h-full min-w-0 flex-1 border-0 bg-transparent px-4 text-sm"
+              :class="overlay ? 'text-stone placeholder:text-white/45' : 'text-ink'"
+              autocomplete="off"
+              @focus="suggestOpen = true"
+              @input="suggestOpen = true"
+            />
+            <button
+              class="h-full min-h-0 shrink-0 rounded-none px-5 text-sm font-semibold bg-night text-stone hover:bg-ink"
+              type="submit"
+            >
+              جستجو
+            </button>
+          </form>
+          <div v-if="showSuggest" class="search-suggest" role="listbox" aria-label="پیشنهاد محصولات">
+            <router-link
+              v-for="item in suggestions"
+              :key="`d-${item.id}`"
+              :to="`/products/${item.slug}`"
+              class="search-suggest__item"
+              role="option"
+              @click="suggestOpen = false"
+            >
+              <img v-if="item.image" :src="asset(item.image)" alt="" />
+              <span class="search-suggest__copy">
+                <span>{{ item.title }}</span>
+                <strong>{{ displayPrice(item) }}</strong>
+              </span>
+            </router-link>
+            <p v-if="!suggestions.length" class="search-suggest__empty">کالایی با این نام در لیست نیست.</p>
+            <button type="button" class="search-suggest__all" @click="search">مشاهده همه نتایج</button>
+          </div>
+        </div>
 
         <div class="ms-auto flex items-center gap-1">
           <div ref="accountRoot" class="relative z-[80] hidden shrink-0 lg:block">
@@ -219,6 +263,10 @@
 
         <nav class="mobile-drawer__nav">
           <router-link class="mobile-drawer__link" to="/" @click="close">خانه</router-link>
+          <router-link class="mobile-drawer__link" to="/products" @click="close">
+            <i class="fa-solid fa-border-all" aria-hidden="true"></i>
+            کاتالوگ
+          </router-link>
           <div
             v-for="group in products.categories"
             :key="group.slug"
@@ -273,6 +321,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useProductStore } from '@/stores/productStore'
+import { asset } from '@/utils/asset'
+import { displayPrice } from '@/utils/money'
 
 const cart = useCartStore()
 const auth = useAuthStore()
@@ -280,6 +330,7 @@ const products = useProductStore()
 const route = useRoute()
 const router = useRouter()
 const query = ref('')
+const suggestOpen = ref(false)
 const mobileOpen = ref(false)
 const accountOpen = ref(false)
 const accountRoot = ref(null)
@@ -296,6 +347,14 @@ const restoreMenuFocus = ref(false)
 const MENU_EVENT = 'imen:open-shop-menu'
 
 const overlay = computed(() => route.name === 'Home' && !scrolled.value && !mobileOpen.value)
+
+const suggestions = computed(() => {
+  const q = query.value.trim()
+  if (q.length < 2) return []
+  return products.search(q).slice(0, 6)
+})
+
+const showSuggest = computed(() => suggestOpen.value && query.value.trim().length >= 2)
 
 function measureHeader() {
   headerHeight.value = headerEl.value?.offsetHeight || 64
@@ -325,6 +384,7 @@ function onScroll() {
 
 function onDocClick(event) {
   if (!accountRoot.value?.contains(event.target)) accountOpen.value = false
+  if (!event.target.closest('.search-wrap')) suggestOpen.value = false
 }
 
 function trapDrawerFocus(event) {
@@ -346,7 +406,10 @@ function trapDrawerFocus(event) {
 }
 
 function onKey(event) {
-  if (event.key === 'Escape') close()
+  if (event.key === 'Escape') {
+    suggestOpen.value = false
+    close()
+  }
   if (event.key === 'Tab' && mobileOpen.value) trapDrawerFocus(event)
 }
 
@@ -387,12 +450,14 @@ onBeforeUnmount(() => {
 
 const navItems = computed(() => [
   { name: 'home', label: 'خانه', to: '/' },
+  { name: 'catalog', label: 'کاتالوگ', to: '/products' },
   ...products.categories,
   { name: 'contact', label: 'تماس', to: '/contact' },
 ])
 
 function search() {
   router.push({ name: 'ProductsApp', query: query.value ? { q: query.value } : {} })
+  suggestOpen.value = false
   close()
 }
 
@@ -405,6 +470,7 @@ function close(restore = true) {
   mobileOpen.value = false
   accountOpen.value = false
   openGroup.value = ''
+  suggestOpen.value = false
 }
 
 watch(
@@ -458,6 +524,94 @@ watch(
   color: inherit;
   cursor: pointer;
   font-size: 18px;
+}
+
+.search-wrap {
+  position: relative;
+}
+
+.search-suggest {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline: 0;
+  z-index: 90;
+  max-height: min(22rem, 70vh);
+  overflow-y: auto;
+  padding: 0.4rem;
+  border: 1px solid var(--color-sand);
+  border-radius: 16px;
+  background: var(--color-bone);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-md);
+}
+
+.search-suggest__item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 3.25rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.search-suggest__item img {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.search-suggest__copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.1rem;
+}
+
+.search-suggest__copy span {
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-suggest__copy strong {
+  color: var(--color-ash);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.search-suggest__item:hover,
+.search-suggest__item:focus-visible {
+  background: var(--color-sand);
+}
+
+.search-suggest__empty {
+  margin: 0;
+  padding: 0.7rem 0.55rem 0.35rem;
+  color: var(--color-ash);
+  font-size: 0.78rem;
+}
+
+.search-suggest__all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: 0.2rem;
+  border: 0;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-ember) 10%, #fff);
+  color: var(--color-ember);
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .icon-btn:hover,

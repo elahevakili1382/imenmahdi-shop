@@ -3,32 +3,17 @@
     <div class="mb-6">
       <h1 class="text-2xl font-bold">نوع ارسال</h1>
       <p class="text-sm text-slate-400 mt-1">
-        قیمت روش‌های ارسال تهران و بازه‌های ساعت تحویل را اینجا مدیریت کنید.
+        بازه‌های ساعت تحویل تهران را اینجا مدیریت کنید. هزینه پیک فروشگاه و ارسال فوری در تسویه از
+        مبلغ سفارش کسر نمی‌شود و در زمان تحویل کالا محاسبه می‌گردد.
       </p>
     </div>
 
-    <article class="dash-card space-y-4 max-w-xl">
-      <h2 class="font-semibold">قیمت ارسال تهران</h2>
-      <label class="block text-sm">
-        پیک فروشگاه (تومان)
-        <input
-          :value="shipping.settings.tehranCourierPrice"
-          class="admin-field mt-1"
-          type="number"
-          min="0"
-          @change="shipping.update({ tehranCourierPrice: Number($event.target.value) })"
-        />
-      </label>
-      <label class="block text-sm">
-        ارسال فوری تهران (تومان)
-        <input
-          :value="shipping.settings.tehranExpressPrice"
-          class="admin-field mt-1"
-          type="number"
-          min="0"
-          @change="shipping.update({ tehranExpressPrice: Number($event.target.value) })"
-        />
-      </label>
+    <article class="dash-card space-y-2 max-w-xl">
+      <h2 class="font-semibold">پیک فروشگاه و ارسال فوری</h2>
+      <p class="text-sm text-slate-400 leading-7">
+        هزینه این دو روش در زمان تحویل کالا محاسبه و از گیرنده دریافت می‌گردد و به مبلغ قابل واریز
+        تسویه اضافه نمی‌شود.
+      </p>
     </article>
 
     <article class="dash-card mt-4 max-w-xl space-y-4">

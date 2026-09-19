@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { asset } from '@/utils/asset'
 import { displayPrice, isPriceOnRequest } from '@/utils/money'
 import { useCartStore } from '@/stores/cartStore'
@@ -13,6 +14,7 @@ const props = defineProps({
 const cart = useCartStore()
 const toast = useToast()
 const contact = useContactStore()
+const router = useRouter()
 const broken = ref(false)
 const outOfStock = computed(() => Number(props.product.stock) <= 0)
 const addLabel = computed(() => (outOfStock.value ? 'ناموجود' : 'افزودن به سبد'))
@@ -20,7 +22,7 @@ const imageSrc = computed(() => (broken.value ? '' : asset(props.product.image))
 
 function add() {
   if (isPriceOnRequest(props.product)) {
-    contact.openWidget(props.product)
+    router.push(`/products/${props.product.slug}`)
     return
   }
   if (outOfStock.value) {
@@ -70,19 +72,18 @@ function onImageError() {
         <strong class="mt-auto pt-2 text-xs sm:text-sm">{{ displayPrice(product) }}</strong>
       </div>
     </router-link>
-    <div class="flex gap-1.5 px-2.5 pb-2.5 sm:px-3 sm:pb-3">
+    <div class="flex items-center gap-1.5 px-2.5 pb-2.5 sm:px-3 sm:pb-3">
       <button
-        class="card-action card-action-dark card-action-add flex-1"
+        class="card-action card-action-dark card-action-add"
         type="button"
-        :disabled="outOfStock && !isPriceOnRequest(product)"
+        :disabled="outOfStock"
         :aria-label="addLabel"
         @click="add"
       >
         <span v-if="outOfStock">ناموجود</span>
-        <span v-else-if="isPriceOnRequest(product)">تماس بگیرید</span>
         <i v-else class="fa-solid fa-plus" aria-hidden="true"></i>
       </button>
-      <button class="card-action card-action-ghost px-3" type="button" @click="ask">مشاوره</button>
+      <button class="card-action card-action-ghost flex-1 px-3" type="button" @click="ask">مشاوره</button>
     </div>
   </article>
 </template>
@@ -157,6 +158,18 @@ function onImageError() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.card-action-add:disabled {
+  width: auto;
+  min-width: 44px;
+  padding: 0 0.85rem;
+  border-radius: 999px;
 }
 
 .card-action-add i {

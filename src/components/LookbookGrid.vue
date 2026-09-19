@@ -56,10 +56,9 @@ const frames = [
   <section class="container-shop py-8 sm:py-12">
     <div class="lookbook">
       <article class="look-intro">
-        <p class="kicker" v-fade-up>کاتالوگ تصویری</p>
-        <h2 class="section-title" v-fade-up>ورود سریع به دسته‌ها</h2>
+        <h2 class="section-title" v-fade-up>تجهیزات در محیط کار</h2>
         <p>
-          یک تصویر، یک دسته. جزئیات فنی و قیمت داخل همان دسته است.
+          همان کالاهایی که تیم ایمنی سر پروژه می‌پوشد. تصویر را بزنید تا دسته باز شود.
         </p>
       </article>
 

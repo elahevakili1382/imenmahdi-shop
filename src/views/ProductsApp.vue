@@ -1,11 +1,41 @@
 <template>
   <section class="container-shop py-8 sm:py-10 min-w-0">
-    <p class="text-sm text-steel mb-2">کاتالوگ</p>
-    <h1 class="text-2xl sm:text-3xl font-bold mb-2">همه محصولات</h1>
-    <p class="text-sm text-steel mb-6">
-      <template v-if="query">نتایج جستجو برای «{{ query }}» · </template>
-      {{ visible.length }} کالا
+    <p class="text-sm text-steel mb-2">
+      <router-link to="/" class="hover:text-ember">خانه</router-link>
+      <span> / </span>
+      کاتالوگ
     </p>
+    <h1 class="text-2xl sm:text-3xl font-bold mb-2">همه محصولات</h1>
+    <div class="list-toolbar">
+      <p class="text-sm text-steel">
+        <template v-if="query">نتایج جستجو برای «{{ query }}» · </template>
+        {{ formatCount(visible.length) }} کالا
+      </p>
+      <label class="sort-field">
+        <span class="sr-only">مرتب‌سازی</span>
+        <select :value="sortMode" @change="setSort($event.target.value)">
+          <option v-for="option in SORT_OPTIONS" :key="option.id" :value="option.id">
+            {{ option.label }}
+          </option>
+        </select>
+      </label>
+    </div>
+
+    <div class="cat-chips" aria-label="دسته‌بندی سریع">
+      <button type="button" class="cat-chip" :class="{ 'is-on': !selectedCats.length }" @click="pickAllCats">
+        همه
+      </button>
+      <button
+        v-for="group in store.categories"
+        :key="group.slug"
+        type="button"
+        class="cat-chip"
+        :class="{ 'is-on': selectedCats.includes(group.slug) }"
+        @click="pickCat(group.slug)"
+      >
+        {{ group.name }}
+      </button>
+    </div>
 
     <div class="lg:hidden mb-4">
       <button class="btn btn-dark min-h-11 text-sm w-full sm:w-auto" type="button" @click="filtersOpen = !filtersOpen">
@@ -59,6 +89,7 @@ import ProductCard from '@/components/ProductCard.vue'
 import ProductFilters from '@/components/ProductFilters.vue'
 import { useProductStore } from '@/stores/productStore'
 import { isPriceOnRequest } from '@/utils/money'
+import { SORT_OPTIONS, formatCount, sortProducts } from '@/utils/catalogSort'
 
 const store = useProductStore()
 const route = useRoute()
@@ -66,6 +97,10 @@ const router = useRouter()
 const filtersOpen = ref(false)
 
 const query = computed(() => String(route.query.q || ''))
+const sortMode = computed(() => {
+  const value = String(route.query.sort || 'popular')
+  return SORT_OPTIONS.some((option) => option.id === value) ? value : 'popular'
+})
 const selectedCats = computed(() => listQuery('cats', 'cat'))
 const selectedSizes = computed(() => listQuery('sizes'))
 const selectedColors = computed(() => listQuery('colors'))
@@ -103,8 +138,7 @@ const visible = computed(() => {
     (item) =>
       isPriceOnRequest(item) || (item.price >= price.value.min && item.price <= price.value.max),
   )
-  list.sort((a, b) => Number(Boolean(b.hero || b.popular)) - Number(Boolean(a.hero || a.popular)))
-  return list
+  return sortProducts(list, sortMode.value)
 })
 
 function listQuery(...keys) {
@@ -158,4 +192,83 @@ function clearFilters() {
 function resetCatalog() {
   router.replace({ query: {} })
 }
+
+function pickAllCats() {
+  const next = { ...route.query }
+  delete next.cats
+  delete next.cat
+  router.replace({ query: next })
+}
+
+function pickCat(slug) {
+  patchQuery({ cats: slug, cat: undefined })
+}
+
+function setSort(value) {
+  patchQuery({ sort: value === 'popular' ? undefined : value })
+}
 </script>
+
+<style scoped>
+.list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.sort-field select {
+  min-height: 2.75rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cat-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+  scrollbar-width: none;
+}
+
+.cat-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.cat-chip {
+  flex: 0 0 auto;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cat-chip.is-on {
+  border-color: var(--color-ember);
+  background: color-mix(in srgb, var(--color-ember) 12%, #fff);
+  color: var(--color-ember);
+}
+
+@media (min-width: 768px) {
+  .cat-chips {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+</style>

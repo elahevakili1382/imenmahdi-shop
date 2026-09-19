@@ -74,7 +74,9 @@
               <div class="font-semibold">{{ method.name }}</div>
               <div class="text-sm text-steel mt-1">{{ method.eta }}</div>
               <div class="text-sm mt-2">
-                {{ method.price ? `${formatPrice(method.price)} تومان` : 'کرایه پس از هماهنگی' }}
+                {{
+                  shippingFeeShort(method) || `${formatPrice(method.price)} تومان`
+                }}
               </div>
               <p class="text-xs text-steel mt-2">{{ method.note }}</p>
             </label>
@@ -124,18 +126,30 @@
         <p class="flex justify-between text-sm mb-2">
           <span>کالا</span><span>{{ formatPrice(cart.totalPrice) }} تومان</span>
         </p>
-        <p class="flex justify-between text-sm mb-2">
+        <p class="flex justify-between text-sm mb-2 gap-3">
           <span>ارسال</span>
-          <span>{{ shipping.price ? `${formatPrice(shipping.price)} تومان` : 'بعداً' }}</span>
+          <span class="text-left">{{
+            shippingFeeShort(shipping) || `${formatPrice(shipping.price)} تومان`
+          }}</span>
         </p>
         <p v-if="scheduleText" class="text-xs text-steel mb-4 leading-6">{{ scheduleText }}</p>
         <p class="flex justify-between font-bold text-lg mb-6">
           <span>جمع</span><span>{{ formatPrice(payable) }} تومان</span>
         </p>
-        <button class="btn btn-primary w-full min-h-11" type="submit" :disabled="pending">
+        <button class="btn btn-primary w-full min-h-11 hidden lg:inline-flex" type="submit" :disabled="pending">
           {{ pending ? 'در حال ثبت سفارش...' : 'ثبت سفارش و نمایش کارت' }}
         </button>
       </aside>
+
+      <div class="checkout-dock lg:hidden">
+        <div>
+          <p>{{ formatPrice(payable) }} تومان</p>
+          <span>قابل واریز</span>
+        </div>
+        <button class="btn btn-primary min-h-11" type="submit" :disabled="pending">
+          {{ pending ? 'در حال ثبت...' : 'ثبت سفارش' }}
+        </button>
+      </div>
     </form>
   </section>
 </template>
@@ -148,7 +162,7 @@ import CheckoutSteps from '@/components/CheckoutSteps.vue'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useOrderStore } from '@/stores/orderStore'
-import { nextWorkingDays } from '@/data/shipping'
+import { nextWorkingDays, shippingFeeShort } from '@/data/shipping'
 import { useShippingStore } from '@/stores/shippingStore'
 import { formatPrice } from '@/utils/money'
 
@@ -186,7 +200,10 @@ watch(
 
 const visibleMethods = computed(() => shippingStore.methodsFor(form.zone))
 const shipping = computed(() => shippingStore.getShipping(form.shippingId))
-const payable = computed(() => cart.totalPrice + (shipping.value.price || 0))
+const payable = computed(() => {
+  if (shippingFeeShort(shipping.value)) return cart.totalPrice
+  return cart.totalPrice + (shipping.value.price || 0)
+})
 const zoneHint = computed(() =>
   form.zone === 'county' ? 'ارسال شهرستان بین ۳ تا ۷ روز کاری زمان می‌برد.' : '',
 )
@@ -244,5 +261,44 @@ async function submit() {
 <style scoped>
 .checkout-page {
   padding-bottom: 2.5rem;
+}
+
+.checkout-dock {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(5.35rem + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-line, #d9d0c3);
+  border-radius: 18px;
+  background: #fbfaf7;
+  box-shadow: 0 12px 32px rgba(12, 14, 18, 0.14);
+}
+
+.checkout-dock p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.checkout-dock span {
+  color: var(--color-ash, #6b6560);
+  font-size: 0.75rem;
+}
+
+.checkout-dock .btn {
+  margin-inline-start: auto;
+  flex-shrink: 0;
+}
+
+@media (max-width: 1023px) {
+  .checkout-page {
+    padding-bottom: 6.5rem;
+  }
 }
 </style>

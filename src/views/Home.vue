@@ -18,10 +18,7 @@
 
     <section class="container-shop cat-section">
       <div class="flex flex-wrap items-end justify-between gap-3 mb-5 sm:mb-7">
-        <div>
-          <p class="kicker mb-2" v-fade-up>دسته‌بندی</p>
-          <h2 class="section-title" v-fade-up>انتخاب دسته تجهیزات</h2>
-        </div>
+        <h2 class="section-title" v-fade-up>دسته‌بندی تجهیزات</h2>
         <router-link to="/products" class="text-sm text-ember min-h-11 inline-flex items-center">
           همه محصولات
         </router-link>
@@ -53,16 +50,15 @@
 
     <section class="container-shop py-8 sm:py-10">
       <div class="mb-5 sm:mb-7 flex flex-wrap items-end justify-between gap-3">
-        <div class="max-w-2xl">
-          <p class="kicker mb-2" v-fade-up>منتخب</p>
-          <h2 class="section-title" v-fade-up>محصولات آماده سفارش</h2>
-        </div>
+        <h2 class="section-title" v-fade-up>پرفروش‌ها</h2>
         <router-link to="/products" class="text-sm text-ember min-h-11 inline-flex items-center">
           مشاهده همه
         </router-link>
       </div>
       <ProductRail :products="spotlight" />
     </section>
+
+    <NewArrivals />
 
     <LookbookGrid />
     <GuaranteePoster />
@@ -105,6 +101,7 @@
 <script setup>
 import { computed } from 'vue'
 import HeroCinematic from '@/components/HeroCinematic.vue'
+import NewArrivals from '@/components/NewArrivals.vue'
 import ProductRail from '@/components/ProductRail.vue'
 import LookbookGrid from '@/components/LookbookGrid.vue'
 import GuaranteePoster from '@/components/GuaranteePoster.vue'
@@ -152,10 +149,10 @@ const spotlight = computed(() => {
 const approvedReviews = computed(() => reviews.approved.slice(0, 3))
 
 const trustPoints = [
-  { icon: 'fa-solid fa-credit-card', title: 'کارت‌به‌کارت', text: 'پرداخت امن با تایید رسید' },
-  { icon: 'fa-solid fa-truck-fast', title: 'ارسال سریع', text: 'تهران پیک · شهرستان ۳–۷ روز' },
-  { icon: 'fa-solid fa-certificate', title: 'اصالت کالا', text: 'تجهیزات استاندارد ایمنی' },
   { icon: 'fa-solid fa-headset', title: 'مشاوره خرید', text: 'راهنمایی انتخاب تجهیزات' },
+  { icon: 'fa-solid fa-certificate', title: 'اصالت و ضمانت کالا', text: 'تجهیزات استاندارد ایمنی' },
+  { icon: 'fa-solid fa-lock', title: 'پرداخت امن', text: 'کارت‌به‌کارت با تایید رسید' },
+  { icon: 'fa-solid fa-truck-fast', title: 'ارسال سریع', text: 'تهران پیک · شهرستان ۳–۷ روز' },
 ]
 </script>
 

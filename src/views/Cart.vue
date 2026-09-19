@@ -91,7 +91,10 @@
         </p>
         <div class="text-xs text-steel leading-7 border-t border-[#ddd4c8] pt-3 mb-5">
           <p>هزینه ارسال در مرحله تسویه مشخص می‌شود.</p>
-          <p>تهران: پیک از {{ formatPrice(shipping.settings.tehranCourierPrice) }} تومان</p>
+          <p>
+            تهران (پیک فروشگاه و ارسال فوری): هزینه ارسال در زمان تحویل کالا محاسبه و از گیرنده
+            دریافت می‌گردد.
+          </p>
           <p>شهرستان: پست، تیپاکس، ماهکس یا باربری از {{ formatPrice(65000) }} تومان</p>
           <p v-if="!auth.isLoggedIn" class="mt-2 text-ember">
             برای پیش‌فاکتور و پرداخت، ابتدا وارد حساب شوید یا ثبت‌نام کنید.
@@ -116,14 +119,12 @@ import { useRouter } from 'vue-router'
 import CheckoutSteps from '@/components/CheckoutSteps.vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
-import { useShippingStore } from '@/stores/shippingStore'
 import { asset } from '@/utils/asset'
 import { formatPrice, toNumber } from '@/utils/money'
 import { useToast } from 'vue-toastification'
 
 const auth = useAuthStore()
 const cart = useCartStore()
-const shipping = useShippingStore()
 const router = useRouter()
 const toast = useToast()
 

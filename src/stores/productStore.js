@@ -199,6 +199,13 @@ function pickMedia(catalogItem, saved) {
   }
 }
 
+function newestStamp(item) {
+  const created = Date.parse(item?.createdAt || '')
+  if (Number.isFinite(created)) return created
+  const match = String(item?.id || '').match(/^p-(\d{10,})$/)
+  return match ? Number(match[1]) : 0
+}
+
 function readProducts() {
   return assembleProducts([])
 }
@@ -213,6 +220,10 @@ export const useProductStore = defineStore('product', {
   getters: {
     featured: (state) => state.products.filter((item) => item.featured),
     popular: (state) => state.products.filter((item) => item.popular),
+    newest: (state) => {
+      const items = state.products.filter((item) => item?.image)
+      return [...items].sort((a, b) => newestStamp(b) - newestStamp(a)).slice(0, 8)
+    },
     lowStock: (state) => state.products.filter((item) => Number(item.stock) <= 8),
     categories: (state) => mergeCategories(state.customCategories, state.products),
     bySlug: (state) => (slug) => state.products.find((item) => item.slug === slug),
@@ -288,6 +299,7 @@ export const useProductStore = defineStore('product', {
           ).filter(Boolean),
         ),
       ]
+      const existing = payload.id ? this.products.find((item) => item.id === payload.id) : null
       const next = withSlugs({
         sizes: ['یک سایز'],
         stock: 0,
@@ -301,6 +313,7 @@ export const useProductStore = defineStore('product', {
         image: payload.image || gallery[0] || '',
         slug: payload.slug || slugify(payload.title),
         id: payload.id || `p-${Date.now()}`,
+        createdAt: existing?.createdAt || payload.createdAt || (!existing ? new Date().toISOString() : undefined),
       })
       if (isBrokenCatalogNewProduct(next)) return null
       if (!next.gallery?.length && next.image) next.gallery = [next.image]

@@ -1,6 +1,8 @@
 <template>
   <section v-if="product" class="container-shop py-8">
     <nav class="text-sm text-steel mb-5 flex flex-wrap gap-x-1 gap-y-1" aria-label="مسیر صفحه">
+      <router-link to="/" class="hover:text-ember">خانه</router-link>
+      <span> / </span>
       <router-link to="/products" class="hover:text-ember">کاتالوگ</router-link>
       <span> / </span>
       <router-link :to="`/products/category/${product.categorySlug}`" class="hover:text-ember">
@@ -61,25 +63,25 @@
           </li>
         </ul>
 
-        <div>
+        <div v-if="product.sizes?.length">
           <label class="block text-sm mb-2" for="product-size">سایز</label>
           <select
             id="product-size"
             v-model="size"
-            class="w-full min-h-11 rounded-xl border border-[#ddd4c8] px-3 py-2.5 bg-white"
+            class="size-select"
           >
             <option v-for="item in product.sizes" :key="item" :value="item">{{ item }}</option>
           </select>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="buy-box">
           <template v-if="isPriceOnRequest(product)">
-            <button class="btn btn-primary min-h-11" type="button" @click="contact.openWidget(product)">
+            <button class="btn btn-primary buy-btn" type="button" @click="contact.openWidget(product)">
               جهت خرید تماس بگیرید
             </button>
           </template>
-          <template v-else>
-            <label class="text-sm" for="product-qty">تعداد</label>
+          <div v-else class="qty-field">
+            <label for="product-qty">تعداد</label>
             <input
               id="product-qty"
               v-model.number="quantity"
@@ -87,13 +89,22 @@
               min="1"
               :max="product.stock || 1"
               inputmode="numeric"
-              class="w-20 min-h-11 rounded-xl border border-[#ddd4c8] px-3 py-2.5"
+              class="qty-input"
             />
-            <button class="btn btn-primary" type="button" :disabled="outOfStock" @click="add">
-              {{ outOfStock ? 'ناموجود' : 'افزودن به سبد' }}
-            </button>
-          </template>
-          <button class="btn btn-ghost" type="button" @click="contact.openWidget(product)">
+          </div>
+          <button
+            v-if="!isPriceOnRequest(product)"
+            class="btn btn-primary buy-btn"
+            type="button"
+            :disabled="outOfStock"
+            @click="add"
+          >
+            {{ outOfStock ? 'ناموجود' : 'افزودن به سبد' }}
+          </button>
+          <router-link v-if="inCart" to="/cart" class="btn btn-ghost buy-btn">
+            مشاهده سبد
+          </router-link>
+          <button class="btn btn-ghost buy-btn" type="button" @click="contact.openWidget(product)">
             مشاوره این محصول
           </button>
         </div>
@@ -115,13 +126,6 @@
     <section class="surface-card p-5 sm:p-6 mt-6">
       <h2 class="font-bold mb-3">درباره محصول</h2>
       <p class="leading-8 text-steel text-sm sm:text-base">{{ product.description }}</p>
-      <h3 class="font-bold mt-6 mb-2">مشخصات</h3>
-      <dl class="spec-table">
-        <div v-for="row in specs" :key="row.label" class="spec-row">
-          <dt>{{ row.label }}</dt>
-          <dd>{{ row.value }}</dd>
-        </div>
-      </dl>
     </section>
 
     <section v-if="related.length" class="mt-8">
@@ -158,6 +162,7 @@ const contact = useContactStore()
 
 const product = computed(() => store.bySlug(route.params.slug))
 const outOfStock = computed(() => Number(product.value?.stock) <= 0)
+const inCart = computed(() => cart.items.some((item) => item.id === product.value?.id))
 const activeImage = ref('')
 const size = ref('')
 const quantity = ref(1)
@@ -168,19 +173,6 @@ const productTrust = [
   { icon: 'fa-solid fa-headset', title: 'پشتیبانی ۲۴ ساعته', subtitle: 'در تمام روزهای هفته' },
   { icon: 'fa-solid fa-shield-halved', title: 'امنیت پرداخت', subtitle: 'توسط کلیه کارت‌ها' },
 ]
-
-const specs = computed(() => {
-  const item = product.value
-  if (!item) return []
-  if (Array.isArray(item.specs) && item.specs.length) return item.specs
-  return [
-    { label: 'دسته', value: item.category },
-    { label: 'زیرگروه', value: item.subcategory },
-    { label: 'سایزهای موجود', value: (item.sizes || []).join('، ') || 'یک سایز' },
-    { label: 'موجودی', value: outOfStock.value ? 'ناموجود' : `${item.stock} عدد` },
-    { label: 'پرداخت', value: 'کارت‌به‌کارت' },
-  ]
-})
 
 const related = computed(() => {
   if (!product.value) return []
@@ -264,10 +256,56 @@ function add() {
   color: var(--color-ember, #c45c26);
 }
 
+.buy-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.qty-field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.qty-field label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-ink, #1c1916);
+}
+
+.qty-input {
+  width: 3.5rem;
+  min-height: 2.5rem;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid #ddd4c8;
+  border-radius: 999px;
+  background: #fff;
+  text-align: center;
+}
+
+.buy-btn {
+  flex: 0 0 auto;
+  width: auto !important;
+  min-height: 2.5rem;
+  padding: 0.35rem 1rem;
+  font-size: 0.875rem;
+}
+
+.size-select {
+  width: 7.5rem;
+  max-width: 100%;
+  min-height: 2.5rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid #ddd4c8;
+  border-radius: 999px;
+  background: #fff;
+}
+
 .product-trust {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.7rem;
+  gap: 0.55rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -276,11 +314,11 @@ function add() {
 .product-trust li {
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
-  min-height: 4.25rem;
-  padding: 0.7rem 0.75rem;
+  gap: 0.55rem;
+  min-height: 0;
+  padding: 0.55rem 0.65rem;
   border: 1px solid var(--color-line, #ddd4c8);
-  border-radius: 1rem;
+  border-radius: 0.85rem;
   background: #fff;
 }
 
@@ -319,50 +357,5 @@ function add() {
   .product-trust {
     grid-template-columns: 1fr 1fr;
   }
-}
-
-.spec-table {
-  display: grid;
-  margin: 0;
-  border: 1px solid var(--color-line, #d9d0c3);
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-}
-
-.spec-row {
-  display: flex;
-  justify-content: flex-start;
-  align-items: baseline;
-  gap: 1rem;
-  margin: 0;
-  padding: 0.45rem 0.9rem;
-  border-bottom: 1px solid var(--color-line, #d9d0c3);
-}
-
-.spec-row:nth-child(odd) {
-  background: #faf8f4;
-}
-
-.spec-row:last-child {
-  border-bottom: 0;
-}
-
-.spec-row dt {
-  flex: 0 0 8rem;
-  width: 8rem;
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.55;
-  color: var(--color-ash, #6b6560);
-}
-
-.spec-row dd {
-  flex: 0 1 auto;
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  line-height: 1.55;
-  text-align: start;
 }
 </style>
