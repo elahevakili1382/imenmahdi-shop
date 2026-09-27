@@ -13,6 +13,8 @@ const userPaused = ref(false)
 const hoverPaused = ref(false)
 const reduceMotion = ref(false)
 let timer
+let touchStartX = 0
+let touchStartY = 0
 
 const paused = computed(() => userPaused.value || hoverPaused.value || reduceMotion.value)
 
@@ -28,6 +30,25 @@ function next() {
 
 function prev() {
   go(index.value - 1)
+}
+
+function onTouchStart(event) {
+  const touch = event.changedTouches?.[0]
+  if (!touch) return
+  touchStartX = touch.clientX
+  touchStartY = touch.clientY
+}
+
+function onTouchEnd(event) {
+  if (slides.value.length < 2) return
+  const touch = event.changedTouches?.[0]
+  if (!touch) return
+  const dx = touch.clientX - touchStartX
+  const dy = touch.clientY - touchStartY
+  if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return
+  // RTL: کشیدن به چپ = بعدی، کشیدن به راست = قبلی
+  if (dx < 0) next()
+  else prev()
 }
 
 function onHeroFocusOut(event) {
@@ -69,13 +90,15 @@ onBeforeUnmount(() => {
 
 <template>
   <section
-    class="relative isolate overflow-hidden bg-night text-stone min-h-[22rem] sm:min-h-[48vh]"
+    class="hero-cinematic relative isolate overflow-hidden bg-night text-stone min-h-[22rem] sm:min-h-[48vh]"
     aria-roledescription="carousel"
     aria-label="بنر فروشگاه"
     @mouseenter="hoverPaused = true"
     @mouseleave="onHeroMouseLeave"
     @focusin="hoverPaused = true"
     @focusout="onHeroFocusOut"
+    @touchstart.passive="onTouchStart"
+    @touchend.passive="onTouchEnd"
   >
     <div class="absolute inset-0 overflow-hidden">
       <img
@@ -143,6 +166,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.hero-cinematic {
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 .hero-ctrl {
   width: 44px;
   height: 44px;

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { toNumber } from '@/utils/money'
+import { toNumber, salePrice } from '@/utils/money'
+import { isOutOfStock, maxOrderQty } from '@/utils/stock'
 
 const STORAGE_KEY = 'imenmahdi-cart'
 
@@ -26,20 +27,22 @@ export const useCartStore = defineStore('cart', {
     },
     addToCart(product) {
       if (product.priceOnRequest) return false
-      if (Number(product.stock) <= 0) return false
+      if (isOutOfStock(product)) return false
       const size = product.size || product.sizes?.[0] || 'یک سایز'
       const existing = this.items.find((item) => item.id === product.id && item.size === size)
+      const incoming = Math.max(1, Number(product.quantity) || 1)
+      const room = maxOrderQty(product)
       if (existing) {
-        existing.quantity += product.quantity || 1
+        existing.quantity = Math.min(existing.quantity + incoming, room || existing.quantity + incoming)
       } else {
         this.items.push({
           id: product.id,
           slug: product.slug,
           title: product.title,
-          price: product.price,
+          price: salePrice(product),
           image: product.image,
           size,
-          quantity: product.quantity || 1,
+          quantity: Math.min(incoming, room || incoming),
         })
       }
       this.persist()

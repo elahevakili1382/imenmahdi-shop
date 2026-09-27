@@ -13,8 +13,13 @@
 
       <div class="surface-card p-5 sm:p-6">
         <p class="text-sm text-steel">سفارش {{ order.id }}</p>
-        <h1 class="text-3xl font-bold mt-1">پرداخت و ارسال رسید</h1>
+        <h1 class="text-3xl font-bold mt-1">
+          {{ isGatewayPaid ? 'پرداخت تایید شد' : isGatewayPending ? 'پرداخت آنلاین' : 'پرداخت و ارسال رسید' }}
+        </h1>
         <p class="mt-3 status-pill bg-sand">{{ statusLabel[order.status] }}</p>
+        <p v-if="paymentFlash" class="text-sm mt-3 leading-7" :class="paymentFlash.ok ? 'text-emerald-700' : 'text-red-600'">
+          {{ paymentFlash.text }}
+        </p>
         <p class="text-sm text-steel mt-4 leading-7">
           ارسال با {{ order.shipping?.name }} به {{ order.city }}
           <span v-if="order.deliveryDate">
@@ -30,15 +35,38 @@
           </span>
           <span v-else-if="order.destination === 'county'"> · ۳ تا ۷ روز کاری</span>
         </p>
-        <ol class="pay-steps mt-5">
+        <ol v-if="!isGatewayPaid && !isGatewayPending" class="pay-steps mt-5">
           <li>مبلغ را به کارت زیر واریز کنید.</li>
           <li>مبلغ دقیق و ۴ رقم آخر کارت خود را وارد کنید.</li>
           <li>عکس رسید را بفرستید تا بات بررسی کند.</li>
         </ol>
       </div>
 
-      <div class="surface-card p-5 sm:p-6">
-        <h2 class="font-bold mb-3">۱. شماره کارت فروشگاه</h2>
+      <div v-if="isGatewayPaid" class="surface-card p-5 sm:p-6">
+        <h2 class="font-bold mb-3">رسید زرین‌پال</h2>
+        <p class="text-sm leading-7">شماره پیگیری: <strong class="dir-ltr">{{ order.payment?.refId }}</strong></p>
+        <p v-if="order.payment?.cardPan" class="text-sm mt-2 dir-ltr text-left">کارت: {{ order.payment.cardPan }}</p>
+        <p class="font-bold mt-4">مبلغ: {{ formatPrice(order.total) }} تومان</p>
+        <router-link :to="`/orders/${order.id}`" class="btn btn-primary mt-5 min-h-11 inline-flex">
+          مشاهده پیگیری سفارش
+        </router-link>
+      </div>
+
+      <div v-else-if="isGatewayPending" class="surface-card p-5 sm:p-6">
+        <h2 class="font-bold mb-3">پرداخت با زرین‌پال</h2>
+        <p class="text-sm text-steel leading-7 mb-4">
+          مبلغ {{ formatPrice(order.total) }} تومان را از درگاه امن زرین‌پال پرداخت کنید.
+        </p>
+        <button class="btn btn-primary w-full min-h-11" type="button" :disabled="payBusy" @click="payOnline">
+          {{ payBusy ? 'در حال انتقال...' : 'رفتن به درگاه زرین‌پال' }}
+        </button>
+        <p class="text-xs text-steel mt-4 leading-6">
+          اگر درگاه در دسترس نبود، پایین‌تر می‌توانید کارت‌به‌کارت کنید.
+        </p>
+      </div>
+
+      <div v-if="!isGatewayPaid" class="surface-card p-5 sm:p-6">
+        <h2 class="font-bold mb-3">{{ isGatewayPending ? 'روش جایگزین: کارت‌به‌کارت' : '۱. شماره کارت فروشگاه' }}</h2>
         <p class="text-2xl font-extrabold tracking-wider dir-ltr text-left">
           {{ formatCardNumber(order.bank.cardNumber) }}
         </p>
@@ -98,13 +126,13 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CheckoutSteps from '@/components/CheckoutSteps.vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useOrderStore } from '@/stores/orderStore'
 import { useShippingStore } from '@/stores/shippingStore'
-import { statusLabel } from '@/data/orderStatus'
+import { ORDER_STATUS, statusLabel } from '@/data/orderStatus'
 import { formatCardNumber, formatPrice } from '@/utils/money'
 import { runReceiptBot, botDecisionLabel } from '@/services/receiptBot'
 import { asset } from '@/utils/asset'
@@ -119,10 +147,53 @@ const toast = useToast()
 
 const order = computed(() => orders.byId(route.params.id))
 const denied = computed(() => order.value && !auth.canAccessOrder(order.value))
+const isGatewayPaid = computed(
+  () => order.value?.paymentMethod === 'zarinpal' && Boolean(order.value?.payment?.refId),
+)
+const isGatewayPending = computed(
+  () =>
+    order.value?.paymentMethod === 'zarinpal' &&
+    !order.value?.payment?.refId &&
+    [ORDER_STATUS.AWAITING_PAYMENT, ORDER_STATUS.AWAITING_RECEIPT].includes(order.value?.status),
+)
+const paymentFlash = computed(() => {
+  const flag = String(route.query.payment || '')
+  if (flag === 'ok') return { ok: true, text: 'پرداخت با موفقیت تایید شد.' }
+  if (flag === 'fail') {
+    const reason = String(route.query.reason || '')
+    if (reason === 'cancelled') return { ok: false, text: 'پرداخت لغو شد یا ناموفق بود.' }
+    return { ok: false, text: 'تایید پرداخت انجام نشد. دوباره از درگاه تلاش کنید.' }
+  }
+  return null
+})
 const declaredAmount = ref('')
 const last4 = ref('')
 const file = ref(null)
 const busy = ref(false)
+const payBusy = ref(false)
+
+onMounted(async () => {
+  if (!order.value && auth.online) {
+    try {
+      await orders.hydrate()
+    } catch {
+      /* keep empty */
+    }
+  }
+})
+
+async function payOnline() {
+  if (!order.value || payBusy.value) return
+  payBusy.value = true
+  try {
+    const pay = await orders.startZarinpalPay(order.value.id)
+    window.location.href = pay.paymentUrl
+  } catch (err) {
+    toast.error(err.message || 'انتقال به درگاه انجام نشد')
+  } finally {
+    payBusy.value = false
+  }
+}
 
 function onFile(event) {
   file.value = event.target.files?.[0] || null

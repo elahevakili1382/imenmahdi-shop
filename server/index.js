@@ -12,12 +12,23 @@ import { normalizePhone, notifyAdmin, notifyOrder, sendSms } from './sms.js'
 import { defaultShippingSettings, getShipping as catalogShipping, slotLabel } from '../src/data/shipping.js'
 import { shopBank } from '../src/data/bank.js'
 import { ORDER_STATUS } from '../src/data/orderStatus.js'
+import { products as catalogProducts } from '../src/data/catalog.js'
 import { isStrongPassword, PASSWORD_HINT } from '../src/utils/password.js'
+import {
+  zarinpalConfigured,
+  zarinpalIsPaidCode,
+  zarinpalRequest,
+  zarinpalStartPayUrl,
+  zarinpalVerify,
+} from './zarinpal.js'
 
 const root = path.dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.PORT || 3001)
 const JWT_SECRET = process.env.JWT_SECRET || 'imenmahdi-dev-secret'
 const SESSION_MS = 8 * 60 * 60 * 1000
+const API_PUBLIC_URL = String(process.env.API_PUBLIC_URL || `http://127.0.0.1:${PORT}`).replace(/\/$/, '')
+const FRONTEND_URL = String(process.env.FRONTEND_URL || 'http://127.0.0.1:5173/imenmahdi-shop').replace(/\/$/, '')
+const ZARINPAL_CURRENCY = process.env.ZARINPAL_CURRENCY === 'IRR' ? 'IRR' : 'IRT'
 const locks = new Map()
 const otps = new Map()
 const OTP_TTL_MS = 2 * 60 * 1000
@@ -25,10 +36,11 @@ const OTP_RESEND_MS = 60 * 1000
 
 ensureDirs()
 seedUsers()
+seedProducts()
 
 const app = express()
 app.use(cors())
-app.use(express.json({ limit: '8mb' }))
+app.use(express.json({ limit: '64mb' }))
 app.use('/uploads', express.static(uploadDir))
 
 function uniqueId(prefix) {
@@ -51,6 +63,18 @@ function seedUsers() {
       city: 'تهران',
       address: 'میدان حسن‌آباد، خیابان امام خمینی',
     })
+  })
+}
+
+/** یک‌بار کاتالوگ را در دیتابیس می‌ریزد؛ بعد از آن حذف/اضافه ادمین منبع حقیقت است */
+function seedProducts() {
+  update((db) => {
+    const meta = db.meta && typeof db.meta === 'object' ? db.meta : {}
+    if (meta.productsSeeded) return
+    if (!Array.isArray(db.products) || db.products.length === 0) {
+      db.products = catalogProducts.map((item) => ({ ...item }))
+    }
+    db.meta = { ...meta, productsSeeded: true }
   })
 }
 
@@ -160,7 +184,7 @@ app.post('/api/auth/register', (req, res) => {
 })
 
 app.post('/api/auth/login', (req, res) => {
-  const phone = String(req.body.phone || '').trim()
+  const phone = normalizePhone(req.body.phone)
   const password = String(req.body.password || '')
   const expectedRole = req.body.expectedRole
   const lock = locks.get(phone)
@@ -168,8 +192,8 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(429).json({ message: 'ورود موقتاً قفل است.' })
   }
   const db = load()
-  const found = db.users.find((item) => item.phone === phone)
-  const ok = found && bcrypt.compareSync(password, found.passwordHash)
+  const found = db.users.find((item) => normalizePhone(item.phone) === phone)
+  const ok = found && found.passwordHash && bcrypt.compareSync(password, found.passwordHash)
   if (!ok || (expectedRole && found.role !== expectedRole)) {
     const attempts = (lock?.attempts || 0) + 1
     locks.set(phone, { attempts, until: attempts >= 5 ? Date.now() + 10 * 60 * 1000 : 0 })
@@ -271,12 +295,15 @@ app.put('/api/auth/profile', auth, (req, res) => {
 })
 
 app.put('/api/auth/credentials', auth, (req, res) => {
-  const phone = String(req.body.phone || '').trim()
+  const phone = normalizePhone(req.body.phone)
   const password = req.body.password ? String(req.body.password) : ''
   const currentPassword = String(req.body.currentPassword || '')
 
   if (!/^09\d{9}$/.test(phone)) {
     return res.status(400).json({ message: 'شماره موبایل معتبر نیست.' })
+  }
+  if (!currentPassword) {
+    return res.status(400).json({ message: 'رمز فعلی را وارد کنید.' })
   }
   if (password && !isStrongPassword(password)) {
     return res.status(400).json({ message: PASSWORD_HINT })
@@ -285,12 +312,20 @@ app.put('/api/auth/credentials', auth, (req, res) => {
   try {
     const user = update((db) => {
       const current = db.users.find((item) => item.id === req.user.id)
-      if (!current) throw new Error('کاربر پیدا نشد.')
-      if (!bcrypt.compareSync(currentPassword, current.passwordHash)) {
-        throw new Error('رمز فعلی نادرست است.')
+      if (!current) {
+        const error = new Error('کاربر پیدا نشد.')
+        error.status = 404
+        throw error
       }
-      if (db.users.some((item) => item.phone === phone && item.id !== current.id)) {
-        throw new Error('این شماره قبلاً ثبت شده است.')
+      if (!current.passwordHash || !bcrypt.compareSync(currentPassword, current.passwordHash)) {
+        const error = new Error('رمز فعلی نادرست است.')
+        error.status = 401
+        throw error
+      }
+      if (db.users.some((item) => normalizePhone(item.phone) === phone && item.id !== current.id)) {
+        const error = new Error('این شماره قبلاً ثبت شده است.')
+        error.status = 409
+        throw error
       }
       current.phone = phone
       if (password) current.passwordHash = bcrypt.hashSync(password, 10)
@@ -298,8 +333,8 @@ app.put('/api/auth/credentials', auth, (req, res) => {
     })
     res.json({ token: sign(user), user: publicUser(user) })
   } catch (err) {
-    const status = err.message.includes('نادرست') ? 401 : err.message.includes('قبلاً') ? 409 : 400
-    res.status(status).json({ message: err.message })
+    const status = Number(err.status) || 400
+    res.status(status).json({ message: err.message || 'ذخیره اطلاعات ورود انجام نشد.' })
   }
 })
 
@@ -323,6 +358,8 @@ app.post('/api/orders', auth, async (req, res) => {
   if (!items.length) return res.status(400).json({ message: 'سبد خالی است.' })
   const shipping = resolveShipping(req.body.shippingId)
   const subtotal = Number(req.body.subtotal || 0)
+  const wantGateway = req.body.paymentMethod !== 'card' && zarinpalConfigured()
+  const paymentMethod = wantGateway ? 'zarinpal' : 'card'
   const order = update((db) => {
     const created = {
       id: uniqueId('IM'),
@@ -341,7 +378,9 @@ app.post('/api/orders', auth, async (req, res) => {
       subtotal,
       shippingPrice: shipping.price,
       total: subtotal + shipping.price,
-      status: ORDER_STATUS.AWAITING_RECEIPT,
+      status: paymentMethod === 'zarinpal' ? ORDER_STATUS.AWAITING_PAYMENT : ORDER_STATUS.AWAITING_RECEIPT,
+      paymentMethod,
+      payment: null,
       bank: shopBank,
       receiptUrl: '',
       receiptName: '',
@@ -356,6 +395,177 @@ app.post('/api/orders', auth, async (req, res) => {
   })
   notifyOrder('order_created', withDelivery(order)).catch(() => {})
   res.status(201).json(order)
+})
+
+/**
+ * شروع پرداخت زرین‌پال برای سفارش
+ * مرحله ۱ داک: request.json → authority
+ * مرحله ۲: StartPay/{authority}
+ */
+app.post('/api/orders/:id/pay/zarinpal', auth, async (req, res) => {
+  if (!zarinpalConfigured()) {
+    return res.status(503).json({ message: 'درگاه زرین‌پال هنوز پیکربندی نشده است.' })
+  }
+  const current = load().orders.find((item) => item.id === req.params.id)
+  if (!current) return res.status(404).json({ message: 'سفارش پیدا نشد.' })
+  if (req.user.role !== 'admin' && current.userId !== req.user.id) {
+    return res.status(403).json({ message: 'دسترسی ندارید.' })
+  }
+  if (current.payment?.refId || current.status === ORDER_STATUS.PREPARING) {
+    return res.status(409).json({ message: 'این سفارش قبلاً پرداخت شده است.' })
+  }
+  if (![ORDER_STATUS.AWAITING_PAYMENT, ORDER_STATUS.AWAITING_RECEIPT, ORDER_STATUS.REJECTED].includes(current.status)) {
+    return res.status(400).json({ message: 'این سفارش قابل پرداخت آنلاین نیست.' })
+  }
+
+  const amount = Math.round(Number(current.total) || 0)
+  if (amount < 1000) {
+    return res.status(400).json({ message: 'مبلغ سفارش برای درگاه معتبر نیست.' })
+  }
+
+  const callbackUrl = `${API_PUBLIC_URL}/api/payments/zarinpal/callback`
+  let result
+  try {
+    result = await zarinpalRequest({
+      amount,
+      currency: ZARINPAL_CURRENCY,
+      description: `پرداخت سفارش ${current.id} — ایمن یاب`,
+      callbackUrl,
+      mobile: current.phone,
+      orderId: current.id,
+    })
+  } catch (err) {
+    return res.status(502).json({ message: err.message || 'ارتباط با زرین‌پال برقرار نشد.' })
+  }
+
+  const code = Number(result?.data?.code)
+  const authority = result?.data?.authority
+  if (code !== 100 || !authority) {
+    const message =
+      result?.errors?.message ||
+      result?.errors?.[0]?.message ||
+      result?.data?.message ||
+      'درخواست پرداخت از زرین‌پال رد شد.'
+    return res.status(400).json({ message, zarinpal: result })
+  }
+
+  update((db) => {
+    const order = db.orders.find((item) => item.id === req.params.id)
+    if (!order) return null
+    order.paymentMethod = 'zarinpal'
+    order.status = ORDER_STATUS.AWAITING_PAYMENT
+    order.payment = {
+      provider: 'zarinpal',
+      authority,
+      amount,
+      currency: ZARINPAL_CURRENCY,
+      requestedAt: new Date().toISOString(),
+      status: 'requested',
+      refId: null,
+      cardPan: null,
+      fee: result?.data?.fee ?? null,
+      feeType: result?.data?.fee_type || null,
+    }
+    return order
+  })
+
+  res.json({
+    authority,
+    paymentUrl: zarinpalStartPayUrl(authority),
+    amount,
+    currency: ZARINPAL_CURRENCY,
+  })
+})
+
+/**
+ * بازگشت از درگاه — QueryString: Authority و Status (OK|NOK)
+ * طبق داک: فقط وقتی Status=OK متد verify صدا زده می‌شود.
+ */
+app.get('/api/payments/zarinpal/callback', async (req, res) => {
+  const status = String(req.query.Status || req.query.status || '')
+  const authority = String(req.query.Authority || req.query.authority || '')
+
+  const fail = (reason) => {
+    const q = new URLSearchParams({ payment: 'fail', reason: reason || 'nok' })
+    if (authority) q.set('authority', authority)
+    return res.redirect(`${FRONTEND_URL}/orders?${q.toString()}`)
+  }
+
+  if (!authority) return fail('missing_authority')
+
+  const current = load().orders.find((item) => item.payment?.authority === authority)
+  if (status.toUpperCase() !== 'OK') {
+    if (current) {
+      return res.redirect(`${FRONTEND_URL}/orders/${current.id}/pay?payment=fail&reason=cancelled`)
+    }
+    return fail('cancelled')
+  }
+
+  if (!current) return fail('order_not_found')
+
+  const amount = Math.round(Number(current.payment?.amount || current.total) || 0)
+  let result
+  try {
+    result = await zarinpalVerify({ amount, authority })
+  } catch {
+    return res.redirect(`${FRONTEND_URL}/orders/${current.id}/pay?payment=fail&reason=verify_network`)
+  }
+
+  const code = Number(result?.data?.code)
+  if (!zarinpalIsPaidCode(code)) {
+    update((db) => {
+      const order = db.orders.find((item) => item.id === current.id)
+      if (!order) return null
+      order.payment = {
+        ...(order.payment || {}),
+        status: 'failed',
+        verifyCode: code,
+        verifyMessage: result?.data?.message || result?.errors?.message || '',
+        verifiedAt: new Date().toISOString(),
+      }
+      return order
+    })
+    return res.redirect(`${FRONTEND_URL}/orders/${current.id}/pay?payment=fail&reason=verify_${code || 'error'}`)
+  }
+
+  const next = update((db) => {
+    const order = db.orders.find((item) => item.id === current.id)
+    if (!order) return null
+    // اگر قبلاً با code 100 تایید شده، 101 را هم موفق حساب می‌کنیم (طبق داک)
+    if (order.payment?.refId && order.status === ORDER_STATUS.PREPARING) return order
+    order.payment = {
+      ...(order.payment || {}),
+      provider: 'zarinpal',
+      authority,
+      amount,
+      status: 'paid',
+      verifyCode: code,
+      refId: result?.data?.ref_id ?? order.payment?.refId,
+      cardPan: result?.data?.card_pan || null,
+      cardHash: result?.data?.card_hash || null,
+      fee: result?.data?.fee ?? null,
+      feeType: result?.data?.fee_type || null,
+      verifiedAt: new Date().toISOString(),
+    }
+    order.paymentMethod = 'zarinpal'
+    order.status = ORDER_STATUS.PREPARING
+    order.adminNote = order.adminNote || `پرداخت آنلاین زرین‌پال · رسید ${order.payment.refId}`
+    return order
+  })
+
+  if (next && code === 100) {
+    notifyOrder('payment_paid', withDelivery(next)).catch(() => {})
+  }
+
+  return res.redirect(`${FRONTEND_URL}/orders/${current.id}/pay?payment=ok&ref=${encodeURIComponent(next?.payment?.refId || '')}`)
+})
+
+app.get('/api/payments/zarinpal/status', auth, (_req, res) => {
+  res.json({
+    configured: zarinpalConfigured(),
+    sandbox: String(process.env.ZARINPAL_SANDBOX || '').toLowerCase() === 'true',
+    currency: ZARINPAL_CURRENCY,
+  })
 })
 
 app.post('/api/orders/:id/receipt', auth, async (req, res) => {
@@ -501,6 +711,7 @@ app.get('/api/products', (_req, res) => {
 app.put('/api/products', auth, admin, (req, res) => {
   const products = update((db) => {
     db.products = Array.isArray(req.body) ? req.body : db.products
+    db.meta = { ...(db.meta && typeof db.meta === 'object' ? db.meta : {}), productsSeeded: true }
     return db.products
   })
   res.json(products)
@@ -639,8 +850,8 @@ app.get('/api/admin/sms', auth, admin, (_req, res) => {
   res.json(load().smsLog || [])
 })
 
-const server = app.listen(PORT, '127.0.0.1', () => {
-  console.log(`Imen Mahdi API on http://127.0.0.1:${PORT}`)
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Imen Mahdi API on http://127.0.0.1:${PORT} (also reachable on LAN)`)
   console.log(
     process.env.KAVENEGAR_API_KEY
       ? 'SMS: sending via Kavenegar'

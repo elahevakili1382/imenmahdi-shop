@@ -21,6 +21,8 @@ const shopGroups = computed(() => [
       { label: 'سبد خرید', to: '/cart' },
       { label: 'پیگیری سفارش', to: '/account/orders' },
       { label: 'تماس با فروشگاه', to: '/contact' },
+      { label: 'قوانین خرید', to: '/terms' },
+      { label: 'حریم خصوصی', to: '/privacy' },
     ],
   },
   {
@@ -161,8 +163,8 @@ async function submit(event) {
           </a>
         </div>
         <div class="im-legal">
-          <router-link to="/contact">حریم خصوصی</router-link>
-          <router-link to="/contact">شرایط خرید</router-link>
+          <router-link to="/privacy">حریم خصوصی</router-link>
+          <router-link to="/terms">شرایط خرید</router-link>
         </div>
       </div>
     </div>

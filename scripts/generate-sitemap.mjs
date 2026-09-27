@@ -29,6 +29,8 @@ const urls = [
   { path: '', priority: '1.0', changefreq: 'daily' },
   { path: 'products', priority: '0.9', changefreq: 'daily' },
   { path: 'contact', priority: '0.6', changefreq: 'monthly' },
+  { path: 'terms', priority: '0.4', changefreq: 'monthly' },
+  { path: 'privacy', priority: '0.4', changefreq: 'monthly' },
 ]
 
 for (const name of [...new Set([...categories, ...subcategories, ...treeNames])]) {

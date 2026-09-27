@@ -14,26 +14,15 @@
     <div class="grid lg:grid-cols-[minmax(0,0.9fr)_1.1fr] gap-6 lg:gap-10 items-start">
       <div class="surface-card p-4 sm:p-5">
         <div class="product-well rounded-2xl p-4 sm:p-6">
-          <img
-            :src="asset(activeImage)"
-            :alt="product.title"
-            class="mx-auto h-[240px] sm:h-[300px] w-full object-contain"
-            fetchpriority="high"
-            decoding="async"
-          />
+          <img :src="asset(activeImage)" :alt="product.title"
+            class="mx-auto h-[240px] sm:h-[300px] w-full object-contain" fetchpriority="high" decoding="async" />
         </div>
         <div class="mt-3 flex justify-center gap-2 overflow-x-auto" role="list">
-          <button
-            v-for="(img, i) in product.gallery"
-            :key="img"
-            type="button"
-            role="listitem"
+          <button v-for="(img, i) in product.gallery" :key="img" type="button" role="listitem"
             class="product-well w-14 h-14 min-w-14 rounded-xl border overflow-hidden cursor-pointer shrink-0"
             :class="activeImage === img ? 'border-ember' : 'border-[#ddd4c8]'"
             :aria-label="`تصویر ${i + 1} از ${product.gallery.length}`"
-            :aria-current="activeImage === img ? 'true' : undefined"
-            @click="activeImage = img"
-          >
+            :aria-current="activeImage === img ? 'true' : undefined" @click="activeImage = img">
             <img :src="asset(img)" alt="" class="w-full h-full object-contain p-1" loading="lazy" decoding="async" />
           </button>
         </div>
@@ -45,15 +34,25 @@
           <h1 class="text-2xl sm:text-3xl font-extrabold leading-9">{{ product.title }}</h1>
         </div>
 
-        <div class="rounded-2xl bg-sand/70 px-4 py-3">
-          <p class="text-2xl font-bold">{{ displayPrice(product) }}</p>
-          <p class="text-xs text-steel mt-1">
-            <template v-if="isPriceOnRequest(product)">برای اعلام قیمت و موجودی با فروشگاه تماس بگیرید.</template>
-            <template v-else>
-              پرداخت کارت‌به‌کارت ·
-              {{ outOfStock ? 'ناموجود' : `موجودی ${product.stock} عدد` }}
-            </template>
+        <div class="price-block">
+          <div class="price-block__row">
+            <p class="price-block__value">{{ displayPrice(product) }}</p>
+            <span v-if="hasDiscount(product)" class="price-block__badge">٪{{ discountPercent(product) }}</span>
+          </div>
+          <p v-if="hasDiscount(product)" class="price-block__was">
+            <s>{{ formatPrice(product.price) }} تومان</s>
           </p>
+          <p v-if="isPriceOnRequest(product)" class="price-block__note">
+            برای اعلام قیمت با فروشگاه تماس بگیرید.
+          </p>
+        </div>
+
+        <div
+          class="stock-block"
+          :class="outOfStock ? 'stock-block--out' : 'stock-block--in'"
+        >
+          <span class="stock-block__dot" aria-hidden="true"></span>
+          <span>{{ stockLine }}</span>
         </div>
 
         <ul v-if="product.features?.length" class="product-features" aria-label="ویژگی‌های محصول">
@@ -65,11 +64,7 @@
 
         <div v-if="product.sizes?.length">
           <label class="block text-sm mb-2" for="product-size">سایز</label>
-          <select
-            id="product-size"
-            v-model="size"
-            class="size-select"
-          >
+          <select id="product-size" v-model="size" class="size-select">
             <option v-for="item in product.sizes" :key="item" :value="item">{{ item }}</option>
           </select>
         </div>
@@ -82,23 +77,11 @@
           </template>
           <div v-else class="qty-field">
             <label for="product-qty">تعداد</label>
-            <input
-              id="product-qty"
-              v-model.number="quantity"
-              type="number"
-              min="1"
-              :max="product.stock || 1"
-              inputmode="numeric"
-              class="qty-input"
-            />
+            <input id="product-qty" v-model.number="quantity" type="number" min="1" :max="qtyMax"
+              inputmode="numeric" class="qty-input" />
           </div>
-          <button
-            v-if="!isPriceOnRequest(product)"
-            class="btn btn-primary buy-btn"
-            type="button"
-            :disabled="outOfStock"
-            @click="add"
-          >
+          <button v-if="!isPriceOnRequest(product)" class="btn btn-primary buy-btn" type="button" :disabled="outOfStock"
+            @click="add">
             {{ outOfStock ? 'ناموجود' : 'افزودن به سبد' }}
           </button>
           <router-link v-if="inCart" to="/cart" class="btn btn-ghost buy-btn">
@@ -149,7 +132,8 @@ import ProductCard from '@/components/ProductCard.vue'
 import { useProductStore } from '@/stores/productStore'
 import { useCartStore } from '@/stores/cartStore'
 import { asset } from '@/utils/asset'
-import { displayPrice, isPriceOnRequest } from '@/utils/money'
+import { displayPrice, formatPrice, hasDiscount, discountPercent, isPriceOnRequest } from '@/utils/money'
+import { displayStock, isOutOfStock, maxOrderQty } from '@/utils/stock'
 import { applySeo, productJsonLd, setJsonLd, absoluteUrl } from '@/utils/seo'
 import { useToast } from 'vue-toastification'
 import { useContactStore } from '@/stores/contactStore'
@@ -161,7 +145,9 @@ const toast = useToast()
 const contact = useContactStore()
 
 const product = computed(() => store.bySlug(route.params.slug))
-const outOfStock = computed(() => Number(product.value?.stock) <= 0)
+const outOfStock = computed(() => isOutOfStock(product.value))
+const stockLine = computed(() => displayStock(product.value))
+const qtyMax = computed(() => maxOrderQty(product.value) || 1)
 const inCart = computed(() => cart.items.some((item) => item.id === product.value?.id))
 const activeImage = ref('')
 const size = ref('')
@@ -225,7 +211,7 @@ function add() {
     toast.error('این کالا فعلاً موجود نیست')
     return
   }
-  const qty = Math.min(Math.max(1, Number(quantity.value) || 1), Number(product.value.stock) || 1)
+  const qty = Math.min(Math.max(1, Number(quantity.value) || 1), qtyMax.value)
   cart.addToCart({ ...product.value, size: size.value, quantity: qty })
   toast.success('محصول به سبد اضافه شد')
 }
@@ -233,6 +219,92 @@ function add() {
 </script>
 
 <style scoped>
+.price-block {
+  padding: 1rem 1.1rem;
+  border-radius: 1.15rem;
+  background:
+    linear-gradient(135deg, rgba(255, 252, 247, 0.95), rgba(244, 236, 224, 0.9));
+  border: 1px solid rgba(196, 164, 132, 0.28);
+}
+
+.price-block__value {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-ink, #1c1916);
+}
+
+.price-block__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.price-block__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.6rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--color-ember, #c45c26);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.price-block__was {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-steel, #6b655e);
+}
+
+.price-block__note {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--color-steel, #6b655e);
+}
+
+.stock-block {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.stock-block__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+}
+
+.stock-block--in {
+  color: #1b6b45;
+  background: rgba(27, 143, 90, 0.1);
+  border: 1px solid rgba(27, 143, 90, 0.22);
+}
+
+.stock-block--in .stock-block__dot {
+  background: #1b8f5a;
+  box-shadow: 0 0 0 3px rgba(27, 143, 90, 0.18);
+}
+
+.stock-block--out {
+  color: #9b2c2c;
+  background: rgba(185, 28, 28, 0.08);
+  border: 1px solid rgba(185, 28, 28, 0.18);
+}
+
+.stock-block--out .stock-block__dot {
+  background: #b91c1c;
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.14);
+}
+
 .product-features {
   display: grid;
   gap: 0.55rem;

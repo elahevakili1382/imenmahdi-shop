@@ -91,9 +91,12 @@
       <div class="contact-split">
         <article class="surface-card address-card">
           <p class="kicker">فروشگاه</p>
-          <h2 class="address-title">آدرس تهران</h2>
+          <h2 class="address-title">آدرس و تلفن</h2>
           <p class="address-text">{{ shopContact.address }}</p>
-          <p class="address-text">ساعت کاری فروشگاه: {{ shopContact.hours }}</p>
+          <p class="address-text">ساعت کاری: {{ shopContact.hours }}</p>
+          <a class="address-phone" :href="telLink(phone.raw)">
+            {{ phone.display }}
+          </a>
           <a
             class="btn btn-ghost address-map"
             :href="mapsHref"
@@ -451,6 +454,23 @@ function sendInquiry() {
 .address-text {
   color: var(--color-ash);
   line-height: 1.9;
+}
+
+.address-phone {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin-top: 0.65rem;
+  color: var(--color-ink);
+  font-size: 1.35rem;
+  font-weight: 800;
+  text-decoration: none;
+  letter-spacing: 0;
+}
+
+.address-phone:hover,
+.address-phone:focus-visible {
+  color: var(--color-ember);
 }
 
 .address-map {

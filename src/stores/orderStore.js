@@ -67,6 +67,7 @@ export const useOrderStore = defineStore('orders', {
       destination = 'county',
       deliveryDate = '',
       deliverySlot = '',
+      paymentMethod = 'zarinpal',
     }) {
       const auth = useAuthStore()
       if (auth.online) {
@@ -81,6 +82,7 @@ export const useOrderStore = defineStore('orders', {
             destination,
             deliveryDate,
             deliverySlot,
+            paymentMethod,
           })
           this.orders = replaceList(this.orders, data)
           this.persist()
@@ -108,6 +110,8 @@ export const useOrderStore = defineStore('orders', {
         shippingPrice: shipping.price,
         total: subtotal + shipping.price,
         status: ORDER_STATUS.AWAITING_RECEIPT,
+        paymentMethod: 'card',
+        payment: null,
         bank: shopBank,
         receiptUrl: '',
         receiptDataUrl: '',
@@ -121,6 +125,36 @@ export const useOrderStore = defineStore('orders', {
       this.orders.unshift(order)
       this.persist()
       return order
+    },
+    async startZarinpalPay(orderId) {
+      const auth = useAuthStore()
+      if (!auth.online) throw new Error('برای پرداخت آنلاین، سرور API باید روشن باشد.')
+      try {
+        const { data } = await api.post(`/orders/${orderId}/pay/zarinpal`)
+        if (data?.paymentUrl) {
+          const current = this.byId(orderId)
+          if (current) {
+            this.orders = replaceList(this.orders, {
+              ...current,
+              paymentMethod: 'zarinpal',
+              status: ORDER_STATUS.AWAITING_PAYMENT,
+              payment: {
+                ...(current.payment || {}),
+                provider: 'zarinpal',
+                authority: data.authority,
+                amount: data.amount,
+                currency: data.currency,
+                status: 'requested',
+              },
+            })
+            this.persist()
+          }
+          return data
+        }
+        throw new Error('آدرس درگاه دریافت نشد.')
+      } catch (err) {
+        throw new Error(apiError(err, 'شروع پرداخت زرین‌پال انجام نشد.'))
+      }
     },
     async applyReceipt(orderId, { dataUrl, name, declaredAmount, last4, botResult }) {
       const auth = useAuthStore()

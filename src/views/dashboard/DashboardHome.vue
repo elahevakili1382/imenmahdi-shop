@@ -237,6 +237,7 @@ import { useLeadStore } from '@/stores/leadStore'
 import { useReviewStore } from '@/stores/reviewStore'
 import { ORDER_STATUS, statusLabel } from '@/data/orderStatus'
 import { formatPrice } from '@/utils/money'
+import { isOutOfStock, stockQuantity } from '@/utils/stock'
 import DashChart from '@/components/dashboard/DashChart.vue'
 
 const auth = useAuthStore()
@@ -313,8 +314,8 @@ const orderTrend = computed(() =>
   ),
 )
 
-const outOfStock = computed(() => products.products.filter((item) => Number(item.stock) <= 0).length)
-const inStock = computed(() => products.products.filter((item) => Number(item.stock) > 0).length)
+const outOfStock = computed(() => products.products.filter((item) => isOutOfStock(item)).length)
+const inStock = computed(() => products.products.filter((item) => !isOutOfStock(item)).length)
 
 const weekStats = computed(() => [
   { label: 'مخاطبین', value: formatPrice(leads.leads.length) },

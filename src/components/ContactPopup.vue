@@ -67,7 +67,9 @@ const consultLabel = 'جهت مشاوره، همین حالا تماس بگیر�
 const contact = useContactStore()
 const route = useRoute()
 const hide = computed(() =>
-  ['Invoice', 'ContactView', 'CartInvoice', 'Cart', 'Checkout', 'OrderStatus', 'ProductDetail'].includes(route.name),
+  ['Invoice', 'ContactView', 'CartInvoice', 'Cart', 'Checkout', 'OrderStatus', 'ProductDetail', 'Terms', 'Privacy'].includes(
+    route.name,
+  ),
 )
 const message = computed(() => productInquiryText(contact.productTitle))
 const whatsappHref = computed(() => whatsappLink(message.value))

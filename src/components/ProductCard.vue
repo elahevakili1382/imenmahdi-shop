@@ -2,7 +2,8 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { asset } from '@/utils/asset'
-import { displayPrice, isPriceOnRequest } from '@/utils/money'
+import { displayPrice, formatPrice, hasDiscount, discountPercent, isPriceOnRequest } from '@/utils/money'
+import { isOutOfStock } from '@/utils/stock'
 import { useCartStore } from '@/stores/cartStore'
 import { useToast } from 'vue-toastification'
 import { useContactStore } from '@/stores/contactStore'
@@ -16,7 +17,7 @@ const toast = useToast()
 const contact = useContactStore()
 const router = useRouter()
 const broken = ref(false)
-const outOfStock = computed(() => Number(props.product.stock) <= 0)
+const outOfStock = computed(() => isOutOfStock(props.product))
 const addLabel = computed(() => (outOfStock.value ? 'ناموجود' : 'افزودن به سبد'))
 const imageSrc = computed(() => (broken.value ? '' : asset(props.product.image)))
 
@@ -60,6 +61,12 @@ function onImageError() {
           <span>بدون تصویر</span>
         </div>
         <span
+          v-if="hasDiscount(product)"
+          class="absolute top-2 left-2 status-pill bg-ember text-white text-[10px]"
+        >
+          ٪{{ discountPercent(product) }}
+        </span>
+        <span
           v-if="product.badge"
           class="absolute top-2 right-2 status-pill bg-ink text-white text-[10px]"
         >
@@ -69,7 +76,12 @@ function onImageError() {
       <div class="p-2.5 sm:p-3 flex flex-col gap-1 flex-1">
         <p class="text-[11px] text-steel">{{ product.subcategory }}</p>
         <h3 class="font-semibold text-xs sm:text-sm leading-5 line-clamp-2">{{ product.title }}</h3>
-        <strong class="mt-auto pt-2 text-xs sm:text-sm">{{ displayPrice(product) }}</strong>
+        <div class="mt-auto pt-2">
+          <strong class="text-xs sm:text-sm">{{ displayPrice(product) }}</strong>
+          <p v-if="hasDiscount(product)" class="price-was">
+            <s>{{ formatPrice(product.price) }} تومان</s>
+          </p>
+        </div>
       </div>
     </router-link>
     <div class="flex items-center gap-1.5 px-2.5 pb-2.5 sm:px-3 sm:pb-3">
@@ -97,6 +109,12 @@ function onImageError() {
   color: var(--color-ash);
   font-size: 0.75rem;
   text-align: center;
+}
+
+.price-was {
+  margin: 0.15rem 0 0;
+  font-size: 0.68rem;
+  color: var(--color-steel, #6b655e);
 }
 
 .product-well__fallback i {

@@ -1,5 +1,5 @@
 <template>
-  <AuthShell title="ورود خریدار" subtitle="با شماره موبایل و رمز وارد شوید.">
+  <AuthShell title="ورود" subtitle="با شماره موبایل و رمز وارد شوید. اگر ادمین هستید بعد از ورود به داشبورد می‌روید.">
     <form class="auth-form surface-card" @submit.prevent="submit">
       <div>
         <label class="field-label" for="login-phone">
@@ -71,6 +71,7 @@ function digits(value) {
   return String(value || '')
     .replace(/[۰-۹]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
     .replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
+    .replace(/\D/g, '')
 }
 
 async function submit() {

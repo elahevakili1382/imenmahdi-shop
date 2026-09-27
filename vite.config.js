@@ -15,7 +15,7 @@ export default defineConfig(({ command }) => ({
   base: process.env.VERCEL ? '/' : '/imenmahdi-shop/',
   plugins: [vue(), glsl(), ...(command === 'serve' ? [vueDevTools()] : [])],
   server: {
-    host: '127.0.0.1',
+    host: '0.0.0.0',
     port: 5173,
     strictPort: true,
     proxy: {

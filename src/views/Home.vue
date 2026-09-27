@@ -50,7 +50,7 @@
 
     <section class="container-shop py-8 sm:py-10">
       <div class="mb-5 sm:mb-7 flex flex-wrap items-end justify-between gap-3">
-        <h2 class="section-title" v-fade-up>پرفروش‌ها</h2>
+        <h2 class="section-title" v-fade-up>همهٔ محصولات</h2>
         <router-link to="/products" class="text-sm text-ember min-h-11 inline-flex items-center">
           مشاهده همه
         </router-link>
@@ -132,19 +132,16 @@ function hasImage(product) {
   return Boolean(product?.image)
 }
 
-const spotlight = computed(() => {
-  const featured = products.featured.filter(hasImage)
-  const popular = products.popular.filter(hasImage)
-  const merged = []
-  const seen = new Set()
-  for (const item of [...featured, ...popular, ...products.products.filter(hasImage)]) {
-    if (seen.has(item.id)) continue
-    seen.add(item.id)
-    merged.push(item)
-    if (merged.length >= 12) break
+function shuffle(list) {
+  const copy = [...list]
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
   }
-  return merged
-})
+  return copy
+}
+
+const spotlight = computed(() => shuffle(products.products.filter(hasImage)))
 
 const approvedReviews = computed(() => reviews.approved.slice(0, 3))
 

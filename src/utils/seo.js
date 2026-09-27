@@ -1,3 +1,6 @@
+import { isOutOfStock } from '@/utils/stock'
+import { salePrice } from '@/utils/money'
+
 const SITE_NAME = 'ایمن یاب'
 const DEFAULT_TITLE = 'ایمن یاب | تجهیزات ایمنی و آتش‌نشانی'
 const DEFAULT_DESCRIPTION =
@@ -129,11 +132,10 @@ export function productJsonLd(product, pageUrl) {
       '@type': 'Offer',
       url: pageUrl,
       priceCurrency: 'IRR',
-      price: String(product.price ?? 0),
-      availability:
-        Number(product.stock) > 0
-          ? 'https://schema.org/InStock'
-          : 'https://schema.org/OutOfStock',
+      price: String(salePrice(product) ?? 0),
+      availability: !isOutOfStock(product)
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
       seller: { '@type': 'Organization', name: SITE_NAME },
     },
   }

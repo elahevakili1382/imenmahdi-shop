@@ -1,11 +1,35 @@
 <script setup>
 import { computed } from 'vue'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Grid, FreeMode } from 'swiper/modules'
 import { asset } from '@/utils/asset'
-import { displayPrice } from '@/utils/money'
+import { displayPrice, formatPrice, hasDiscount, discountPercent } from '@/utils/money'
 import { categoryTree } from '@/data/catalog'
 import { useProductStore } from '@/stores/productStore'
+import 'swiper/css'
+import 'swiper/css/grid'
+import 'swiper/css/free-mode'
 
 const products = useProductStore()
+const modules = [Grid, FreeMode]
+
+const breakpoints = {
+  0: {
+    slidesPerView: 2,
+    spaceBetween: 8,
+    grid: { rows: 3, fill: 'row' },
+  },
+  640: {
+    slidesPerView: 2,
+    spaceBetween: 10,
+    grid: { rows: 3, fill: 'row' },
+  },
+  1024: {
+    slidesPerView: 4,
+    spaceBetween: 12,
+    grid: { rows: 2, fill: 'row' },
+  },
+}
 
 function categoryTo(name) {
   const group = categoryTree.find((item) => item.name === name)
@@ -59,21 +83,34 @@ const newest = computed(() => products.newest)
       </router-link>
     </div>
 
-    <div v-if="newest.length" class="new-grid">
-      <router-link
-        v-for="product in newest"
-        :key="product.id"
-        :to="`/products/${product.slug}`"
-        class="new-card"
+    <div v-if="newest.length" class="new-rail">
+      <Swiper
+        :modules="modules"
+        :breakpoints="breakpoints"
+        :slides-per-view="2"
+        :space-between="8"
+        :grid="{ rows: 3, fill: 'row' }"
+        :free-mode="{ enabled: true, sticky: true }"
+        dir="rtl"
+        grab-cursor
+        class="new-swiper"
       >
-        <span class="new-card__photo">
-          <img :src="asset(product.image)" :alt="product.title" loading="lazy" decoding="async" />
-        </span>
-        <span class="new-card__copy">
-          <h3 :title="product.title">{{ product.title }}</h3>
-          <strong>{{ displayPrice(product) }}</strong>
-        </span>
-      </router-link>
+        <SwiperSlide v-for="product in newest" :key="product.id">
+          <router-link :to="`/products/${product.slug}`" class="new-card">
+            <span class="new-card__photo">
+              <img :src="asset(product.image)" :alt="product.title" loading="lazy" decoding="async" />
+            </span>
+            <span class="new-card__copy">
+              <h3 :title="product.title">{{ product.title }}</h3>
+              <strong>{{ displayPrice(product) }}</strong>
+              <em v-if="hasDiscount(product)" class="new-card__deal">
+                ٪{{ discountPercent(product) }} ·
+                <s>{{ formatPrice(product.price) }}</s>
+              </em>
+            </span>
+          </router-link>
+        </SwiperSlide>
+      </Swiper>
     </div>
   </section>
 </template>
@@ -179,39 +216,51 @@ const newest = computed(() => products.newest)
   font-size: 0.7rem;
 }
 
-.new-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
+.new-rail {
+  overflow: hidden;
+  min-width: 0;
+  touch-action: pan-x;
+}
+
+.new-swiper {
+  width: 100%;
+  /* 3 ردیف کارت روی موبایل */
+  height: 17.5rem;
+}
+
+.new-rail :deep(.swiper-wrapper) {
+  box-sizing: border-box;
+}
+
+.new-rail :deep(.swiper-slide) {
+  height: calc((100% - 16px) / 3) !important;
+  box-sizing: border-box;
 }
 
 .new-card {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.55rem;
+  width: 100%;
+  height: 100%;
   min-width: 0;
-  min-height: 5.25rem;
-  padding: 0.6rem 0.75rem 0.6rem 0.65rem;
+  padding: 0.45rem 0.55rem;
   overflow: hidden;
   border: 1px solid var(--color-line);
-  border-radius: 16px;
+  border-radius: 14px;
   background: #fff;
   color: var(--color-ink);
   text-decoration: none;
   box-shadow: 0 1px 0 rgba(12, 14, 18, 0.04);
-  transition:
-    border-color 220ms cubic-bezier(0.2, 0, 0, 1),
-    box-shadow 220ms cubic-bezier(0.2, 0, 0, 1),
-    transform 180ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .new-card__photo {
   position: relative;
-  width: 4.5rem;
-  height: 4.5rem;
+  width: 3.35rem;
+  height: 3.35rem;
   flex-shrink: 0;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--color-bone);
 }
 
@@ -219,7 +268,7 @@ const newest = computed(() => products.newest)
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 0.28rem;
+  padding: 0.2rem;
 }
 
 .new-card__copy {
@@ -231,34 +280,37 @@ const newest = computed(() => products.newest)
   margin: 0;
   display: -webkit-box;
   overflow: hidden;
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  line-height: 1.5;
+  line-height: 1.4;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
 .new-card__copy strong {
   display: block;
-  margin-top: 0.28rem;
-  color: var(--color-ink);
-  font-size: 0.78rem;
+  margin-top: 0.2rem;
+  font-size: 0.7rem;
   font-weight: 800;
 }
 
-.new-card:hover,
-.new-card:focus-visible {
-  border-color: color-mix(in srgb, var(--color-ember) 42%, var(--color-line));
-  box-shadow: 0 12px 28px rgba(28, 25, 22, 0.1);
+.new-card__deal {
+  display: block;
+  margin-top: 0.15rem;
+  font-style: normal;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-ember, #c45c26);
+}
+
+.new-card__deal s {
+  color: var(--color-steel, #6b655e);
+  font-weight: 600;
 }
 
 .new-card:focus-visible {
   outline: 2px solid var(--color-ember);
   outline-offset: 2px;
-}
-
-.new-card:active {
-  transform: scale(0.99);
 }
 
 @media (min-width: 640px) {
@@ -267,9 +319,18 @@ const newest = computed(() => products.newest)
     gap: 1rem;
   }
 
-  .new-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+  .new-swiper {
+    height: 18.5rem;
+  }
+
+  .new-card__photo {
+    width: 3.75rem;
+    height: 3.75rem;
+  }
+
+  .new-card__copy h3,
+  .new-card__copy strong {
+    font-size: 0.76rem;
   }
 }
 
@@ -278,22 +339,28 @@ const newest = computed(() => products.newest)
     padding-block: 1.75rem 0.75rem;
   }
 
-  .new-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .new-swiper {
+    /* 2 ردیف × 4 ستون */
+    height: 13.5rem;
+  }
+
+  .new-rail :deep(.swiper-slide) {
+    height: calc((100% - 12px) / 2) !important;
+  }
+
+  .new-card {
+    gap: 0.7rem;
+    padding: 0.55rem 0.7rem;
+  }
+
+  .new-card__photo {
+    width: 4.25rem;
+    height: 4.25rem;
   }
 
   .new-card__copy h3,
   .new-card__copy strong {
     font-size: 0.8rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .new-card,
-  .promo-card__cta,
-  .new-card:active {
-    transition: none;
-    transform: none;
   }
 }
 </style>

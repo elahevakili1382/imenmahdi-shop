@@ -8,7 +8,7 @@ export const dataDir = path.join(root, 'data')
 export const uploadDir = path.join(root, 'uploads')
 const jsonFile = path.join(dataDir, 'db.json')
 const sqliteFile = path.join(dataDir, 'shop.db')
-const KEYS = ['users', 'orders', 'products', 'reviews', 'leads', 'heroSlides', 'guarantee', 'smsLog', 'shipping']
+const KEYS = ['users', 'orders', 'products', 'reviews', 'leads', 'heroSlides', 'guarantee', 'smsLog', 'shipping', 'meta']
 
 let sqlite
 
@@ -23,6 +23,7 @@ function empty() {
     guarantee: null,
     smsLog: [],
     shipping: null,
+    meta: null,
   }
 }
 
@@ -88,7 +89,7 @@ export function save(db) {
   conn.exec('BEGIN')
   try {
     for (const key of KEYS) {
-      const fallback = key === 'guarantee' || key === 'shipping' ? null : []
+      const fallback = key === 'guarantee' || key === 'shipping' || key === 'meta' ? null : []
       upsert.run(key, JSON.stringify(db[key] ?? fallback))
     }
     conn.exec('COMMIT')

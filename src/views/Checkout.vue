@@ -4,7 +4,7 @@
 
     <h1 class="text-3xl font-bold mb-2">تسویه حساب</h1>
     <p class="text-steel mb-8 leading-7">
-      پرداخت کارت‌به‌کارت است. بعد از ثبت سفارش، شماره کارت و آپلود رسید را می‌بینید.
+      بعد از ثبت سفارش به درگاه امن زرین‌پال هدایت می‌شوید. در صورت نیاز، پرداخت کارت‌به‌کارت هم در صفحه سفارش مانده است.
     </p>
 
     <form class="grid lg:grid-cols-[1.2fr_0.8fr] gap-6" @submit.prevent="submit">
@@ -137,17 +137,17 @@
           <span>جمع</span><span>{{ formatPrice(payable) }} تومان</span>
         </p>
         <button class="btn btn-primary w-full min-h-11 hidden lg:inline-flex" type="submit" :disabled="pending">
-          {{ pending ? 'در حال ثبت سفارش...' : 'ثبت سفارش و نمایش کارت' }}
+          {{ pending ? 'در حال انتقال به درگاه...' : 'پرداخت آنلاین با زرین‌پال' }}
         </button>
       </aside>
 
       <div class="checkout-dock lg:hidden">
         <div>
           <p>{{ formatPrice(payable) }} تومان</p>
-          <span>قابل واریز</span>
+          <span>پرداخت آنلاین</span>
         </div>
         <button class="btn btn-primary min-h-11" type="submit" :disabled="pending">
-          {{ pending ? 'در حال ثبت...' : 'ثبت سفارش' }}
+          {{ pending ? 'لطفاً صبر کنید...' : 'پرداخت' }}
         </button>
       </div>
     </form>
@@ -247,8 +247,20 @@ async function submit() {
       destination: form.zone,
       deliveryDate: form.zone === 'tehran' ? form.deliveryDate : '',
       deliverySlot: form.zone === 'tehran' ? form.deliverySlot : '',
+      paymentMethod: 'zarinpal',
     })
     cart.clearCart()
+    if (order.paymentMethod === 'zarinpal') {
+      try {
+        const pay = await orders.startZarinpalPay(order.id)
+        window.location.href = pay.paymentUrl
+        return
+      } catch (payErr) {
+        toast.error(payErr.message || 'انتقال به درگاه انجام نشد. می‌توانید از صفحه سفارش دوباره تلاش کنید.')
+        router.push({ name: 'OrderStatus', params: { id: order.id } })
+        return
+      }
+    }
     router.push({ name: 'OrderStatus', params: { id: order.id } })
   } catch (err) {
     toast.error(err.message || 'ثبت سفارش انجام نشد. دوباره تلاش کنید.')

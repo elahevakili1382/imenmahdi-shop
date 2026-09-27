@@ -57,7 +57,25 @@ const routes = [
         component: () => import('@/views/ContactView.vue'),
         meta: {
           title: 'تماس با ما',
-          description: 'راه‌های ارتباط با فروشگاه تجهیزات ایمنی ایمن یاب.',
+          description: 'آدرس، تلفن و راه‌های ارتباط با فروشگاه تجهیزات ایمنی ایمن یاب.',
+        },
+      },
+      {
+        path: 'terms',
+        name: 'Terms',
+        component: () => import('@/views/TermsView.vue'),
+        meta: {
+          title: 'قوانین خرید و مرجوعی',
+          description: 'شرایط ثبت سفارش، پرداخت کارت‌به‌کارت، ارسال و مرجوعی کالا در ایمن یاب.',
+        },
+      },
+      {
+        path: 'privacy',
+        name: 'Privacy',
+        component: () => import('@/views/PrivacyView.vue'),
+        meta: {
+          title: 'حریم خصوصی',
+          description: 'نحوه جمع‌آوری و استفاده از اطلاعات خریداران در فروشگاه ایمن یاب.',
         },
       },
       {

@@ -3,7 +3,11 @@ import { update } from './db.js'
 
 const TEMPLATES = {
   order_created: (order) =>
-    `${honorific(order.title, order.customerName)}\nسفارش ${order.id} ثبت شد. مبلغ را کارت‌به‌کارت واریز و رسید را در پنل بارگذاری کنید.\nایمنی مهدی`,
+    order.paymentMethod === 'zarinpal'
+      ? `${honorific(order.title, order.customerName)}\nسفارش ${order.id} ثبت شد. برای پرداخت آنلاین وارد صفحه سفارش شوید.\nایمنی مهدی`
+      : `${honorific(order.title, order.customerName)}\nسفارش ${order.id} ثبت شد. مبلغ را کارت‌به‌کارت واریز و رسید را در پنل بارگذاری کنید.\nایمنی مهدی`,
+  payment_paid: (order) =>
+    `${honorific(order.title, order.customerName)}\nپرداخت سفارش ${order.id} با موفقیت تایید شد${order.payment?.refId ? ` (رسید ${order.payment.refId})` : ''}. سفارش در حال آماده‌سازی است.\nایمنی مهدی`,
   receipt_review: (order) =>
     `${honorific(order.title, order.customerName)}\nرسید سفارش ${order.id} دریافت شد و در حال بررسی است.\nایمنی مهدی`,
   receipt_approved: (order) =>

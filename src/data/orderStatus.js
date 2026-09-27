@@ -1,4 +1,5 @@
 export const ORDER_STATUS = {
+  AWAITING_PAYMENT: 'awaiting_payment',
   AWAITING_RECEIPT: 'awaiting_receipt',
   AWAITING_REVIEW: 'awaiting_review',
   APPROVED: 'approved',
@@ -9,6 +10,7 @@ export const ORDER_STATUS = {
 }
 
 export const statusLabel = {
+  awaiting_payment: 'در انتظار پرداخت آنلاین',
   awaiting_receipt: 'در انتظار رسید',
   awaiting_review: 'در حال بررسی رسید',
   approved: 'تایید شده',
