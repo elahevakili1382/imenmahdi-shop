@@ -10,10 +10,10 @@
         navHidden ? '-translate-y-full' : 'translate-y-0',
       ]"
     >
-      <div class="container-shop flex items-center gap-3 py-3 lg:gap-4 lg:py-3.5">
-        <router-link to="/" class="shrink-0 leading-tight">
-          <span class="block text-[11px] tracking-[0.22em] text-ember">IMEN YAB</span>
-          <span class="block font-extrabold text-xl">ایمن یاب</span>
+      <div class="container-shop navbar-bar flex items-center gap-2 sm:gap-3 py-3 lg:gap-4 lg:py-3.5">
+        <router-link to="/" class="navbar-brand shrink-0 leading-tight">
+          <span class="block text-[10px] sm:text-[11px] tracking-[0.22em] text-ember">IMEN YAB</span>
+          <span class="block font-extrabold text-lg sm:text-xl">ایمن یاب</span>
         </router-link>
 
         <form
@@ -265,7 +265,7 @@
           <router-link class="mobile-drawer__link" to="/" @click="close">خانه</router-link>
           <router-link class="mobile-drawer__link" to="/products" @click="close">
             <i class="fa-solid fa-border-all" aria-hidden="true"></i>
-            کاتالوگ
+            محصولات
           </router-link>
           <div
             v-for="group in products.categories"
@@ -450,7 +450,7 @@ onBeforeUnmount(() => {
 
 const navItems = computed(() => [
   { name: 'home', label: 'خانه', to: '/' },
-  { name: 'catalog', label: 'کاتالوگ', to: '/products' },
+  { name: 'catalog', label: 'محصولات', to: '/products' },
   ...products.categories,
   { name: 'contact', label: 'تماس', to: '/contact' },
 ])
@@ -512,6 +512,22 @@ watch(
 </script>
 
 <style scoped>
+.navbar-bar {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.navbar-brand {
+  max-width: 6.5rem;
+}
+
+@media (min-width: 400px) {
+  .navbar-brand {
+    max-width: none;
+  }
+}
+
 .icon-btn {
   width: 44px;
   height: 44px;

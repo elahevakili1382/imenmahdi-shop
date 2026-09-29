@@ -1,20 +1,7 @@
 <script setup>
 import { useProductStore } from '@/stores/productStore'
 import { formatPrice } from '@/utils/money'
-
-const COLOR_SWATCH = {
-  زرد: '#E6B800',
-  سفید: '#F7F3EC',
-  مشکی: '#1C1916',
-  سرمه‌ای: '#1B3A4B',
-  خاکستری: '#8A847C',
-  سبز: '#2F6F5E',
-  آبی: '#3D5A80',
-  نارنجی: '#C45C26',
-  قرمز: '#B42318',
-  طلایی: '#C4A484',
-  شفاف: '#D9E2EC',
-}
+import { colorHex } from '@/utils/colors'
 
 defineProps({
   selectedCategories: { type: Array, default: () => [] },
@@ -31,7 +18,7 @@ const emit = defineEmits(['toggle-category', 'toggle-size', 'toggle-color', 'upd
 const products = useProductStore()
 
 function swatch(name) {
-  return COLOR_SWATCH[name] || '#C4A484'
+  return colorHex(name)
 }
 </script>
 

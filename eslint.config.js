@@ -21,6 +21,16 @@ export default defineConfig([
     },
   },
 
+  {
+    name: 'app/server-node',
+    files: ['server/**/*.{js,mjs,cjs}', 'scripts/**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
   

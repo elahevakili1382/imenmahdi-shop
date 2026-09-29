@@ -26,11 +26,12 @@
           {{ order.phone }}
         </p>
         <img
-          v-if="order.receiptUrl || order.receiptDataUrl"
-          :src="mediaUrl(order.receiptUrl || order.receiptDataUrl)"
+          v-if="receiptSrc(order.id) || order.receiptDataUrl"
+          :src="receiptSrc(order.id) || order.receiptDataUrl"
           alt="رسید"
           class="mt-4 max-h-56 w-full rounded-xl object-contain bg-[var(--dash-hover)]"
         />
+        <p v-else-if="order.receiptUrl" class="mt-4 text-sm text-[var(--dash-muted)]">در حال بارگذاری رسید...</p>
       </div>
 
       <div class="bot-report">
@@ -104,26 +105,66 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useOrderStore } from '@/stores/orderStore'
 import { formatPrice } from '@/utils/money'
 import { botDecisionLabel } from '@/services/receiptBot'
-import { mediaUrl } from '@/services/api'
+import { api } from '@/services/api'
 
 const orders = useOrderStore()
 const toast = useToast()
 const busyId = ref('')
 const list = computed(() => orders.pendingReview)
+const receiptBlobs = reactive({})
 
 onMounted(() => {
   list.value.forEach((order) => {
+    loadReceiptPreview(order)
     const engine = order.botResult?.engine
     if (engine !== 'ocr+phash+memory' && (order.receiptUrl || order.receiptDataUrl)) {
       reinspect(order)
     }
   })
 })
+
+watch(
+  list,
+  (rows) => {
+    rows.forEach((order) => loadReceiptPreview(order))
+  },
+  { deep: false },
+)
+
+onBeforeUnmount(() => {
+  Object.values(receiptBlobs).forEach((url) => {
+    if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
+  })
+})
+
+function receiptSrc(orderId) {
+  return receiptBlobs[orderId] || ''
+}
+
+async function loadReceiptPreview(order) {
+  if (!order?.id) return
+  if (order.receiptDataUrl?.startsWith('data:')) {
+    receiptBlobs[order.id] = order.receiptDataUrl
+    return
+  }
+  if (!order.receiptUrl) return
+  if (receiptBlobs[order.id]) return
+  try {
+    const { data } = await api.get(`/orders/${encodeURIComponent(order.id)}/receipt/file`, {
+      responseType: 'blob',
+      timeout: 60000,
+    })
+    const url = URL.createObjectURL(data)
+    receiptBlobs[order.id] = url
+  } catch {
+    /* keep empty — بدون توکن عمومی نشان نده */
+  }
+}
 
 async function reinspect(order) {
   busyId.value = order.id

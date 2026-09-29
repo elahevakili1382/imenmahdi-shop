@@ -151,10 +151,22 @@ const routes = [
         meta: { requiresAdmin: true },
       },
       {
+        path: 'admin/products/new',
+        name: 'AdminProductNew',
+        component: () => import('@/views/dashboard/AdminProductForm.vue'),
+        meta: { requiresAdmin: true, title: 'محصول جدید' },
+      },
+      {
+        path: 'admin/products/:id/edit',
+        name: 'AdminProductEdit',
+        component: () => import('@/views/dashboard/AdminProductForm.vue'),
+        meta: { requiresAdmin: true, title: 'ویرایش محصول' },
+      },
+      {
         path: 'admin/products',
         name: 'AdminProducts',
         component: () => import('@/views/dashboard/AdminProducts.vue'),
-        meta: { requiresAdmin: true },
+        meta: { requiresAdmin: true, title: 'مدیریت محصولات' },
       },
       {
         path: 'admin/hero',

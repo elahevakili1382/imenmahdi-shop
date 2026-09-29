@@ -44,7 +44,7 @@ const dockItems = computed(() => {
       active: path === '/' || path === '',
     },
     {
-      label: 'کاتالوگ',
+      label: 'محصولات',
       to: '/products',
       iconOff: 'fa-solid fa-border-all',
       iconOn: 'fa-solid fa-border-all',

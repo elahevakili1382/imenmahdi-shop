@@ -86,6 +86,7 @@ import ProductCard from '@/components/ProductCard.vue'
 import ProductFilters from '@/components/ProductFilters.vue'
 import { useProductStore } from '@/stores/productStore'
 import { isPriceOnRequest } from '@/utils/money'
+import { colorName } from '@/utils/colors'
 import { SORT_OPTIONS, formatCount, sortProducts } from '@/utils/catalogSort'
 import { applySeo } from '@/utils/seo'
 
@@ -112,14 +113,17 @@ const price = computed(() => ({
   max: Number(route.query.max || bounds.value.max),
 }))
 const availableSizes = computed(() => uniqueOf(scoped.value.flatMap((item) => item.sizes || [])))
-const availableColors = computed(() => uniqueOf(scoped.value.flatMap((item) => item.colors || [])))
+const availableColors = computed(() =>
+  uniqueOf(scoped.value.flatMap((item) => (item.colors || []).map((color) => colorName(color)))),
+)
 
 const visible = computed(() => {
   const filtered = scoped.value.filter((item) => {
     const sizeOk =
       !selectedSizes.value.length || (item.sizes || []).some((size) => selectedSizes.value.includes(size))
     const colorOk =
-      !selectedColors.value.length || (item.colors || []).some((color) => selectedColors.value.includes(color))
+      !selectedColors.value.length ||
+      (item.colors || []).some((color) => selectedColors.value.includes(colorName(color)))
     return sizeOk && colorOk && (isPriceOnRequest(item) || (item.price >= price.value.min && item.price <= price.value.max))
   })
   return sortProducts(filtered, sortMode.value)

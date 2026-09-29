@@ -89,6 +89,7 @@ import ProductCard from '@/components/ProductCard.vue'
 import ProductFilters from '@/components/ProductFilters.vue'
 import { useProductStore } from '@/stores/productStore'
 import { isPriceOnRequest } from '@/utils/money'
+import { colorName } from '@/utils/colors'
 import { SORT_OPTIONS, formatCount, sortProducts } from '@/utils/catalogSort'
 
 const store = useProductStore()
@@ -117,7 +118,9 @@ const price = computed(() => ({
 }))
 
 const availableSizes = computed(() => uniqueOf(store.products.flatMap((item) => item.sizes || [])))
-const availableColors = computed(() => uniqueOf(store.products.flatMap((item) => item.colors || [])))
+const availableColors = computed(() =>
+  uniqueOf(store.products.flatMap((item) => (item.colors || []).map((color) => colorName(color)))),
+)
 
 const visible = computed(() => {
   let list = query.value ? store.search(query.value) : [...store.products]
@@ -132,7 +135,9 @@ const visible = computed(() => {
     list = list.filter((item) => (item.sizes || []).some((size) => selectedSizes.value.includes(size)))
   }
   if (selectedColors.value.length) {
-    list = list.filter((item) => (item.colors || []).some((color) => selectedColors.value.includes(color)))
+    list = list.filter((item) =>
+      (item.colors || []).some((color) => selectedColors.value.includes(colorName(color))),
+    )
   }
   list = list.filter(
     (item) =>

@@ -5,8 +5,8 @@ export const defaultHeroSlides = [
     kicker: 'آتش‌نشانی',
     headline: 'تجهیزات عملیاتی، آماده صحنه',
     copy: 'لباس، کلاه و چکمه آتش‌نشانی برای ایستگاه، پالایشگاه و پروژه.',
-    to: '/products/category/tjhyzat-atsh-nshany',
-    cta: 'تجهیزات آتش‌نشانی',
+    to: '/contact',
+    cta: 'ثبت درخواست پیش فاکتور معتبر',
   },
   {
     image: 'images/hero/weld.png',
@@ -14,17 +14,17 @@ export const defaultHeroSlides = [
     kicker: 'صنعت و کارگاه',
     headline: 'محافظت کنار حرارت و جرقه',
     copy: 'ماسک جوشکاری، فیلتر تنفسی و دستکش برای نفت، گاز و تولید.',
-    to: '/products/category/tjhyzat-tnfsy',
-    cta: 'تجهیزات تنفسی',
+    to: '/contact',
+    cta: 'ثبت درخواست پیش فاکتور معتبر',
   },
   {
     image: 'images/hero/site-dusk.png',
     focus: 'object-[center_40%]',
     kicker: 'حفاظت فردی',
     headline: 'کلاه، لباس کار و ایمنی ارتفاع',
-    copy: 'کاتالوگ ایمن یاب برای تیم HSE، عمرانی و کار در ارتفاع.',
-    to: '/products',
-    cta: 'مشاهده کاتالوگ',
+    copy: 'مرجع تخصصی تجهیزات حفاظت فردی، آتش‌نشانی و ایمنی کار برای تیم HSE، عمرانی و کار در ارتفاع.',
+    to: '/contact',
+    cta: 'ثبت درخواست پیش فاکتور معتبر',
   },
 ]
 

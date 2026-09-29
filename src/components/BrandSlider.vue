@@ -58,9 +58,9 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="brand-gallery py-8 sm:py-12">
-    <div class="container-shop mb-6 sm:mb-8">
+    <div class="container-shop mb-6 sm:mb-8 brand-gallery__head">
       <p class="kicker mb-2">برندها</p>
-      <h2 class="section-title">تأمین‌کنندگان کاتالوگ</h2>
+      <h2 class="section-title brand-gallery__title">تأمین‌کنندگان معتبر جهانی و داخلی</h2>
     </div>
 
     <div ref="track" class="container-shop brand-track">
@@ -98,6 +98,17 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
   width: 100%;
   max-width: 100%;
+}
+
+.brand-gallery__head {
+  text-align: center;
+}
+
+.brand-gallery__title {
+  margin-inline: auto;
+  font-size: clamp(0.95rem, 2.4vw, 1.28rem);
+  font-weight: 800;
+  line-height: 1.5;
 }
 
 .brand-track {

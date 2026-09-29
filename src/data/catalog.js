@@ -587,7 +587,7 @@ export const products = [
     sizes: ['M', 'L', 'XL'],
     featured: true,
     stock: 10,
-    badge: 'CanSafe',
+    badge: 'CanaSafe',
     sku: '50120',
     description:
       'هارنس تمام‌بدن سبک Canasafe مدل LaTCH 71 DO (کد ۵۰۱۲۰) برای کار در ارتفاع و موقعیت‌دهی. نقطه اتصال جلو با قفل ضامن‌دار، حلقه پشتی آلومینیومی، کمربند موقعیت کار، کارابین فولادی جلو، دو حلقه کناری و نقطه اتصال حالت نشسته.',
@@ -669,7 +669,7 @@ export const products = [
   ...product,
   categorySlug: slugify(product.category),
   subcategorySlug: slugify(product.subcategory),
-  colors: PRODUCT_COLORS[product.id] || ['مشکی'],
+  colors: PRODUCT_COLORS[product.id] || [],
 }))
 
 export const heroProducts = products.filter((item) => item.hero)

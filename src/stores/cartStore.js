@@ -28,7 +28,7 @@ export const useCartStore = defineStore('cart', {
     addToCart(product) {
       if (product.priceOnRequest) return false
       if (isOutOfStock(product)) return false
-      const size = product.size || product.sizes?.[0] || 'یک سایز'
+      const size = product.size || product.sizes?.[0] || ''
       const existing = this.items.find((item) => item.id === product.id && item.size === size)
       const incoming = Math.max(1, Number(product.quantity) || 1)
       const room = maxOrderQty(product)
@@ -41,6 +41,7 @@ export const useCartStore = defineStore('cart', {
           title: product.title,
           price: salePrice(product),
           image: product.image,
+          badge: product.badge || '',
           size,
           quantity: Math.min(incoming, room || incoming),
         })

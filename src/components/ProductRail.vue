@@ -20,7 +20,13 @@ const breakpoints = {
 
 <template>
   <div v-if="products.length" class="product-rail relative">
-    <Swiper :modules="modules" :breakpoints="breakpoints" :navigation="true" dir="rtl">
+    <Swiper
+      :modules="modules"
+      :breakpoints="breakpoints"
+      :navigation="true"
+      :grab-cursor="true"
+      dir="rtl"
+    >
       <SwiperSlide v-for="product in products" :key="product.id">
         <ProductCard :product="product" />
       </SwiperSlide>

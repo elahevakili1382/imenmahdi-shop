@@ -240,6 +240,7 @@ const moreGroups = computed(() => {
 })
 
 const currentPageTitle = computed(() => {
+  if (route.meta?.title) return String(route.meta.title)
   const match = flatLinks.value.find((link) => isActive(link))
   return match?.label || 'داشبورد'
 })

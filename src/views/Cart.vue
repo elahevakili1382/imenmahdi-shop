@@ -1,115 +1,136 @@
 <template>
-  <section class="container-shop py-8 sm:py-10">
-    <CheckoutSteps current="cart" />
-
-    <div class="flex flex-wrap items-end justify-between gap-3 mb-8">
-      <div>
-        <h1 class="text-3xl font-bold">سبد خرید</h1>
-        <p class="text-sm text-steel mt-2">
-          {{ cart.totalCount }} قلم · جمع کالا {{ formatPrice(cart.totalPrice) }} تومان
-        </p>
+  <section class="cart-page">
+    <div class="container-shop cart-page__inner">
+      <div v-if="!cart.items.length" class="cart-empty">
+        <div class="cart-top cart-top--empty">
+          <CheckoutSteps current="cart" />
+        </div>
+        <div class="cart-empty__icon" aria-hidden="true">
+          <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+        <h1>سبد خرید خالی است</h1>
+        <p>کالای ایمنی را از کاتالوگ انتخاب کنید تا تعداد، سایز و پیش‌فاکتور اینجا جمع شود.</p>
+        <router-link to="/products" class="cart-empty__cta">شروع خرید از کاتالوگ</router-link>
       </div>
-      <router-link to="/products" class="btn btn-ghost min-h-11">ادامه خرید</router-link>
-    </div>
 
-    <div v-if="!cart.items.length" class="surface-card p-10 text-center max-w-md mx-auto">
-      <p class="font-bold mb-2">سبد خرید خالی است</p>
-      <p class="text-sm text-steel leading-7 mb-5">
-        کالای ایمنی را از کاتالوگ انتخاب کنید تا تعداد، سایز و پیش‌فاکتور اینجا جمع شود.
-      </p>
-      <router-link to="/products" class="btn btn-primary min-h-11">شروع خرید از کاتالوگ</router-link>
-    </div>
+      <div v-else>
+        <header class="cart-top">
+          <div>
+            <h1>سبد خرید</h1>
+            <p>{{ cart.totalCount }} قلم کالا در سبد شماست</p>
+          </div>
+          <CheckoutSteps current="cart" />
+        </header>
 
-    <div v-else class="grid lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.6fr)] gap-6">
-      <div class="space-y-4">
-        <article
-          v-for="item in cart.items"
-          :key="item.id + item.size"
-          class="surface-card p-4 grid grid-cols-[88px_minmax(0,1fr)] sm:grid-cols-[96px_minmax(0,1fr)_auto] gap-4 items-start"
-        >
-          <router-link
-            :to="item.slug ? `/products/${item.slug}` : '/products'"
-            class="product-well w-full aspect-square rounded-xl p-2 border border-[#eee8de]"
-          >
-            <img :src="asset(item.image)" :alt="item.title" class="w-full h-full object-contain" loading="lazy" decoding="async" />
-          </router-link>
-
-          <div class="min-w-0">
-            <router-link
-              :to="item.slug ? `/products/${item.slug}` : '/products'"
-              class="font-semibold leading-7 hover:underline"
-            >
-              {{ item.title }}
-            </router-link>
-            <p class="text-sm text-steel mt-1">سایز {{ item.size }}</p>
-            <p class="text-sm mt-2">واحد: {{ formatPrice(item.price) }} تومان</p>
-            <p class="font-semibold mt-1 sm:hidden">جمع: {{ formatPrice(lineTotal(item)) }} تومان</p>
-
-            <div class="mt-3 flex flex-wrap items-center gap-3">
-              <div class="qty-stepper" role="group" :aria-label="`تعداد ${item.title}`">
-                <button type="button" aria-label="کاهش تعداد" @click="cart.changeQuantity(item.id, item.size, -1)">
-                  −
-                </button>
-                <input
-                  :value="item.quantity"
-                  type="number"
-                  min="1"
-                  :aria-label="`تعداد ${item.title}`"
-                  @change="cart.updateQuantity(item.id, item.size, Number($event.target.value))"
-                />
-                <button type="button" aria-label="افزایش تعداد" @click="cart.changeQuantity(item.id, item.size, 1)">
-                  +
-                </button>
-              </div>
-              <button
-                class="remove-btn"
-                type="button"
-                aria-label="حذف از سبد"
-                @click="cart.removeFromCart(item.id, item.size)"
+        <div class="cart-layout">
+          <div class="cart-main">
+            <article v-for="item in cart.items" :key="item.id + item.size" class="cart-item">
+              <router-link
+                :to="item.slug ? `/products/${item.slug}` : '/products'"
+                class="cart-item__media"
               >
+                <img :src="asset(item.image)" :alt="item.title" loading="lazy" decoding="async" />
+                <span v-if="item.badge" class="cart-item__badge">{{ item.badge }}</span>
+              </router-link>
+
+              <div class="cart-item__body">
+                <div class="cart-item__top">
+                  <router-link
+                    :to="item.slug ? `/products/${item.slug}` : '/products'"
+                    class="cart-item__title"
+                  >
+                    {{ item.title }}
+                  </router-link>
+                  <span class="cart-item__sku">{{ itemCode(item) }}</span>
+                </div>
+
+                <p class="cart-item__meta">
+                  <template v-if="item.size">سایز {{ item.size }} <span aria-hidden="true">·</span></template>
+                  موجود در انبار فروشگاه
+                  <span aria-hidden="true">·</span>
+                  واحد {{ formatPrice(item.price) }} تومان
+                </p>
+
+                <div class="cart-item__foot">
+                  <div class="cart-item__controls">
+                    <div class="qty-stepper" role="group" :aria-label="`تعداد ${item.title}`">
+                      <button type="button" aria-label="کاهش تعداد" @click="cart.changeQuantity(item.id, item.size, -1)">
+                        −
+                      </button>
+                      <input
+                        :value="item.quantity"
+                        type="number"
+                        min="1"
+                        :aria-label="`تعداد ${item.title}`"
+                        @change="cart.updateQuantity(item.id, item.size, Number($event.target.value))"
+                      />
+                      <button type="button" aria-label="افزایش تعداد" @click="cart.changeQuantity(item.id, item.size, 1)">
+                        +
+                      </button>
+                    </div>
+                    <button
+                      class="remove-btn"
+                      type="button"
+                      aria-label="حذف از سبد"
+                      @click="cart.removeFromCart(item.id, item.size)"
+                    >
+                      <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <strong class="cart-item__total">{{ formatPrice(lineTotal(item)) }} تومان</strong>
+                </div>
+              </div>
+            </article>
+
+            <div class="cart-main__actions">
+              <button class="cart-clear" type="button" @click="clearAll">
                 <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                خالی کردن کل سبد خرید
               </button>
+              <router-link to="/products" class="cart-continue">
+                بازگشت و ادامه خرید تجهیزات دیگر
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+              </router-link>
             </div>
           </div>
 
-          <p class="hidden sm:block text-left font-semibold whitespace-nowrap">
-            {{ formatPrice(lineTotal(item)) }} تومان
-          </p>
-        </article>
-      </div>
+          <aside class="cart-summary">
+            <div class="cart-summary__head">
+              <h2>خلاصه سفارش</h2>
+              <span class="cart-summary__count">{{ cart.totalCount }} قلم کالا</span>
+            </div>
 
-      <aside class="surface-card p-6 h-fit lg:sticky lg:top-24 cart-summary">
-        <h2 class="font-bold mb-4">خلاصه سفارش</h2>
-        <p class="flex justify-between mb-2 text-sm">
-          <span>تعداد اقلام</span><span>{{ cart.totalCount }}</span>
-        </p>
-        <p class="flex justify-between mb-2 text-sm">
-          <span>جمع کالا</span><span>{{ formatPrice(cart.totalPrice) }} تومان</span>
-        </p>
-        <p class="flex justify-between font-bold text-lg mb-4">
-          <span>قابل پرداخت کالا</span><span>{{ formatPrice(cart.totalPrice) }} تومان</span>
-        </p>
-        <div class="text-xs text-steel leading-7 border-t border-[#ddd4c8] pt-3 mb-5">
-          <p>هزینه ارسال در مرحله تسویه مشخص می‌شود.</p>
-          <p>
-            تهران (پیک فروشگاه و ارسال فوری): هزینه ارسال در زمان تحویل کالا محاسبه و از گیرنده
-            دریافت می‌گردد.
-          </p>
-          <p>شهرستان: پست، تیپاکس، ماهکس یا باربری از {{ formatPrice(65000) }} تومان</p>
-          <p v-if="!auth.isLoggedIn" class="mt-2 text-ember">
-            برای پیش‌فاکتور و پرداخت، ابتدا وارد حساب شوید یا ثبت‌نام کنید.
-          </p>
+            <div class="cart-summary__rows">
+              <p>
+                <span>جمع ارزش اقلام</span>
+                <strong>{{ formatPrice(cart.totalPrice) }} تومان</strong>
+              </p>
+              <p>
+                <span>هزینه حمل و ترخیص</span>
+                <em>محاسبه در مرحله بعد</em>
+              </p>
+            </div>
+
+            <div class="cart-summary__total">
+              <span>مبلغ نهایی پرداختی</span>
+              <strong>{{ formatPrice(cart.totalPrice) }} تومان</strong>
+            </div>
+
+            <p v-if="!auth.isLoggedIn" class="cart-summary__hint">
+              برای پیش‌فاکتور و پرداخت، ابتدا وارد حساب شوید یا ثبت‌نام کنید.
+            </p>
+
+            <button class="cart-summary__primary" type="button" @click="goSecure('/checkout')">
+              ادامه جهت تکمیل سفارش و آدرس
+              <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            </button>
+            <button class="cart-summary__secondary" type="button" @click="goSecure('/cart/invoice')">
+              <i class="fa-solid fa-print" aria-hidden="true"></i>
+              دریافت پیش‌فاکتور معتبر و چاپ
+            </button>
+          </aside>
         </div>
-        <button class="btn btn-dark w-full mb-3 min-h-11" type="button" @click="goSecure('/cart/invoice')">
-          پیش‌فاکتور و چاپ
-        </button>
-        <button class="btn btn-primary w-full mb-3 min-h-11" type="button" @click="goSecure('/checkout')">
-          ادامه به تسویه
-        </button>
-        <router-link to="/products" class="btn btn-ghost w-full min-h-11 hidden lg:inline-flex">
-          ادامه خرید
-        </router-link>
-      </aside>
+      </div>
     </div>
   </section>
 </template>
@@ -132,6 +153,20 @@ function lineTotal(item) {
   return toNumber(item.price) * item.quantity
 }
 
+function itemCode(item) {
+  const raw = String(item.id || '')
+    .replace(/^p-/, '')
+    .replace(/-/g, '')
+    .toUpperCase()
+  return raw.slice(0, 8) || 'ITEM'
+}
+
+function clearAll() {
+  if (!window.confirm('کل سبد خرید خالی شود؟')) return
+  cart.clearCart()
+  toast.success('سبد خالی شد')
+}
+
 function goSecure(path) {
   if (!auth.isLoggedIn) {
     toast.info('برای ادامه، ابتدا وارد شوید یا ثبت‌نام کنید.')
@@ -148,33 +183,235 @@ function goSecure(path) {
 </script>
 
 <style scoped>
+.cart-page {
+  background: transparent;
+  padding-block: 1.25rem 2.5rem;
+  min-height: 60vh;
+}
+
+.cart-page__inner {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.cart-empty {
+  max-width: 28rem;
+  margin-inline: auto;
+  padding: 2.5rem 1.5rem;
+  border-radius: 1.25rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+}
+
+.cart-empty__icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0 auto 1rem;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #ea580c;
+  font-size: 1.25rem;
+}
+
+.cart-empty h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.cart-empty p {
+  margin: 0.65rem 0 1.25rem;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+.cart-empty__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 0.85rem;
+  background: #ea580c;
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.cart-layout {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+
+.cart-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.cart-top--empty {
+  justify-content: flex-end;
+  margin-bottom: 1.25rem;
+}
+
+.cart-top h1 {
+  margin: 0;
+  font-size: clamp(1.25rem, 3vw, 1.65rem);
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.cart-top p {
+  margin: 0.3rem 0 0;
+  color: #64748b;
+  font-size: 0.86rem;
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 0.85rem;
+  padding: 0.95rem;
+  border-radius: 1.15rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+}
+
+.cart-item__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 0.9rem;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+}
+
+.cart-item__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 0.35rem;
+}
+
+.cart-item__badge {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  max-width: calc(100% - 0.5rem);
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 800;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cart-item__body {
+  min-width: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.cart-item__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.cart-item__title {
+  color: #0f172a;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.55;
+  text-decoration: none;
+}
+
+.cart-item__title:hover {
+  color: #ea580c;
+}
+
+.cart-item__sku {
+  flex-shrink: 0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #475569;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.cart-item__meta {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.76rem;
+  line-height: 1.7;
+}
+
+.cart-item__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.cart-item__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .qty-stepper {
   display: inline-flex;
   align-items: center;
-  border: 1px solid #ddd4c8;
-  border-radius: 999px;
+  min-height: 2.5rem;
+  border-radius: 0.75rem;
   overflow: hidden;
-  min-height: 44px;
+  background: #eef4ff;
+  border: 1px solid #dbe7f8;
 }
 
 .qty-stepper button,
 .qty-stepper input {
   border: 0;
   background: transparent;
-  min-height: 44px;
+  min-height: 2.5rem;
   text-align: center;
+  color: #0f172a;
 }
 
 .qty-stepper button {
-  width: 44px;
+  width: 2.35rem;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 1.05rem;
+  font-weight: 700;
 }
 
 .qty-stepper input {
-  width: 48px;
-  border-inline: 1px solid #ddd4c8;
-  font-weight: 600;
+  width: 2.6rem;
+  border-inline: 1px solid #dbe7f8;
+  font-weight: 800;
+  font-size: 0.88rem;
 }
 
 .qty-stepper input::-webkit-outer-spin-button,
@@ -191,18 +428,216 @@ function goSecure(path) {
 .remove-btn {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 2.5rem;
+  height: 2.5rem;
   border: 0;
-  border-radius: 999px;
-  background: rgba(180, 35, 24, 0.08);
-  color: var(--color-danger);
+  border-radius: 0.75rem;
+  background: rgba(185, 28, 28, 0.08);
+  color: #b91c1c;
   cursor: pointer;
-  font-size: 0.95rem;
 }
 
 .remove-btn:hover,
 .remove-btn:focus-visible {
-  background: rgba(180, 35, 24, 0.14);
+  background: rgba(185, 28, 28, 0.14);
+}
+
+.cart-item__total {
+  color: #0f172a;
+  font-size: 0.95rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.cart-main__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.cart-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 0;
+  background: transparent;
+  color: #b91c1c;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cart-continue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #64748b;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cart-continue:hover {
+  color: #ea580c;
+}
+
+.cart-summary {
+  padding: 1.2rem;
+  border-radius: 1.25rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  height: fit-content;
+}
+
+.cart-summary__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cart-summary__head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.cart-summary__count {
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.cart-summary__rows {
+  display: grid;
+  gap: 0.7rem;
+  padding-bottom: 0.95rem;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.cart-summary__rows p {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0;
+  color: #64748b;
+  font-size: 0.86rem;
+}
+
+.cart-summary__rows strong {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.cart-summary__rows em {
+  font-style: normal;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.cart-summary__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 1rem 0 1.15rem;
+}
+
+.cart-summary__total span {
+  color: #0f172a;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.cart-summary__total strong {
+  color: #ea580c;
+  font-size: 1.2rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.cart-summary__hint {
+  margin: 0 0 0.85rem;
+  color: #c2410c;
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.cart-summary__primary,
+.cart-summary__secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cart-summary__primary {
+  border: 0;
+  background: #c2410c;
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(194, 65, 12, 0.28);
+}
+
+.cart-summary__primary:hover {
+  background: #9a3412;
+}
+
+.cart-summary__secondary {
+  margin-top: 0.65rem;
+  border: 0;
+  background: #e8f1ff;
+  color: #1e3a5f;
+}
+
+.cart-summary__secondary:hover {
+  background: #dbe7f8;
+}
+
+@media (min-width: 640px) {
+  .cart-item {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1.1rem;
+  }
+
+  .cart-item__title {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .cart-page {
+    padding-block: 1.75rem 3rem;
+  }
+
+  .cart-layout {
+    grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.72fr);
+    align-items: start;
+    gap: 1.25rem;
+  }
+
+  .cart-summary {
+    position: sticky;
+    top: 6.5rem;
+    padding: 1.35rem;
+  }
 }
 </style>

@@ -1,6 +1,6 @@
 export const brands = [
   { name: 'Dräger', logo: 'images/brands/draeger.svg' },
-  { name: 'CanSafe', logo: 'images/brands/cansafe.png' },
+  { name: 'CanaSafe', logo: 'images/brands/canasafe.jpg' },
   { name: 'Petzl', logo: 'images/brands/petzl.png' },
   { name: 'Honeywell', logo: 'images/brands/honeywell.svg' },
   { name: 'MSA', logo: 'images/brands/msa.svg' },

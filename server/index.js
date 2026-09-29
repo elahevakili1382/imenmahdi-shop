@@ -1,7 +1,6 @@
 import 'dotenv/config'
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import express from 'express'
 import cors from 'cors'
 import bcrypt from 'bcryptjs'
@@ -22,26 +21,69 @@ import {
   zarinpalVerify,
 } from './zarinpal.js'
 
-const root = path.dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.PORT || 3001)
-const JWT_SECRET = process.env.JWT_SECRET || 'imenmahdi-dev-secret'
+const JWT_SECRET = String(process.env.JWT_SECRET || '').trim()
+if (!JWT_SECRET || JWT_SECRET === 'imenmahdi-dev-secret') {
+  throw new Error(
+    'JWT_SECRET در .env تنظیم نشده یا ناامن است. سرور بدون JWT_SECRET قوی بالا نمی‌آید.',
+  )
+}
 const SESSION_MS = 8 * 60 * 60 * 1000
 const API_PUBLIC_URL = String(process.env.API_PUBLIC_URL || `http://127.0.0.1:${PORT}`).replace(/\/$/, '')
 const FRONTEND_URL = String(process.env.FRONTEND_URL || 'http://127.0.0.1:5173/imenmahdi-shop').replace(/\/$/, '')
 const ZARINPAL_CURRENCY = process.env.ZARINPAL_CURRENCY === 'IRR' ? 'IRR' : 'IRT'
+const receiptDir = path.join(uploadDir, 'receipts')
 const locks = new Map()
 const otps = new Map()
 const OTP_TTL_MS = 2 * 60 * 1000
 const OTP_RESEND_MS = 60 * 1000
 
+function frontendOrigin(url) {
+  try {
+    return new URL(url).origin
+  } catch {
+    return ''
+  }
+}
+
+const corsOrigins = [
+  ...new Set(
+    [
+      frontendOrigin(FRONTEND_URL),
+      ...String(process.env.CORS_ORIGINS || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ].filter(Boolean),
+  ),
+]
+
 ensureDirs()
+fs.mkdirSync(receiptDir, { recursive: true })
 seedUsers()
 seedProducts()
 
 const app = express()
-app.use(cors())
+app.use(
+  cors({
+    origin(origin, callback) {
+      // درخواست‌های بدون Origin (مثل curl / پروکسی سرور به سرور) مجازند
+      if (!origin) return callback(null, true)
+      if (corsOrigins.includes(origin)) return callback(null, true)
+      return callback(null, false)
+    },
+    credentials: true,
+  }),
+)
 app.use(express.json({ limit: '64mb' }))
-app.use('/uploads', express.static(uploadDir))
+// عکس محصول عمومی است؛ مسیر رسیدها را مسدود کن
+app.use('/uploads', (req, res, next) => {
+  const safe = decodeURIComponent(String(req.path || '')).toLowerCase()
+  if (safe.includes('receipt') || safe.includes('..')) {
+    return res.status(404).json({ message: 'یافت نشد.' })
+  }
+  return next()
+}, express.static(uploadDir))
 
 function uniqueId(prefix) {
   const n = String(Math.floor(1e7 + Math.random() * 9e7))
@@ -50,19 +92,30 @@ function uniqueId(prefix) {
 }
 
 function seedUsers() {
+  const allowDemo = String(process.env.ALLOW_DEMO_ADMIN || '').toLowerCase() === 'true'
+  if (!allowDemo) return
+  const phone = normalizePhone(process.env.ADMIN_SEED_PHONE || '')
+  const password = String(process.env.ADMIN_SEED_PASSWORD || '')
+  if (!phone || !isStrongPassword(password)) {
+    console.warn(
+      'ALLOW_DEMO_ADMIN=true است ولی ADMIN_SEED_PHONE / ADMIN_SEED_PASSWORD معتبر نیست — seed ادمین انجام نشد.',
+    )
+    return
+  }
   update((db) => {
     if (db.users.some((item) => item.role === 'admin')) return
     db.users.push({
       id: 'admin-demo',
-      name: 'مدیر فروشگاه',
+      name: String(process.env.ADMIN_SEED_NAME || 'مدیر فروشگاه').trim() || 'مدیر فروشگاه',
       title: 'آقا',
-      phone: '09121111111',
-      passwordHash: bcrypt.hashSync('admin', 10),
+      phone,
+      passwordHash: bcrypt.hashSync(password, 10),
       role: 'admin',
       company: 'ایمنی مهدی',
       city: 'تهران',
-      address: 'میدان حسن‌آباد، خیابان امام خمینی',
+      address: '',
     })
+    console.warn('ادمین دمو از env ساخته شد. قبل از پروداکشن ALLOW_DEMO_ADMIN را خاموش کنید.')
   })
 }
 
@@ -71,8 +124,13 @@ function seedProducts() {
   update((db) => {
     const meta = db.meta && typeof db.meta === 'object' ? db.meta : {}
     if (meta.productsSeeded) return
+    const removed = new Set((meta.removedProductIds || []).map(String))
     if (!Array.isArray(db.products) || db.products.length === 0) {
-      db.products = catalogProducts.map((item) => ({ ...item }))
+      db.products = catalogProducts
+        .filter((item) => !removed.has(String(item.id)))
+        .map((item) => ({ ...item }))
+    } else if (removed.size) {
+      db.products = db.products.filter((item) => item?.id && !removed.has(String(item.id)))
     }
     db.meta = { ...meta, productsSeeded: true }
   })
@@ -80,8 +138,7 @@ function seedProducts() {
 
 function publicUser(user) {
   if (!user) return null
-  const { passwordHash, ...safe } = user
-  return safe
+  return Object.fromEntries(Object.entries(user).filter(([key]) => key !== 'passwordHash'))
 }
 
 function sign(user) {
@@ -130,23 +187,136 @@ function parseDataUrl(dataUrl) {
   return { mime: match[1], buffer: Buffer.from(match[2], 'base64') }
 }
 
-function saveReceipt(dataUrl) {
+function saveUpload(dataUrl, prefix = 'file') {
   const parsed = parseDataUrl(dataUrl)
   if (!parsed) return ''
   const ext = parsed.mime.includes('png') ? 'png' : parsed.mime.includes('webp') ? 'webp' : 'jpg'
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+  const filename = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
   fs.writeFileSync(path.join(uploadDir, filename), parsed.buffer)
   return `/uploads/${filename}`
 }
 
+function saveReceipt(dataUrl) {
+  const parsed = parseDataUrl(dataUrl)
+  if (!parsed) return ''
+  fs.mkdirSync(receiptDir, { recursive: true })
+  const ext = parsed.mime.includes('png') ? 'png' : parsed.mime.includes('webp') ? 'webp' : 'jpg'
+  const filename = `receipt-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`
+  fs.writeFileSync(path.join(receiptDir, filename), parsed.buffer)
+  // مسیر خصوصی — فقط از route احراز هویت‌شده قابل دانلود است
+  return `receipts/${filename}`
+}
+
+function materializeImageSrc(src, prefix = 'product') {
+  const value = String(src || '')
+  if (!value) return ''
+  if (value.startsWith('/uploads/')) return value
+  if (value.startsWith('data:')) return saveUpload(value, prefix) || value
+  return value
+}
+
+function materializeProductImages(product) {
+  if (!product || typeof product !== 'object') return product
+  const idHint = String(product.id || 'product').replace(/[^\w-]+/g, '').slice(0, 24) || 'product'
+  const gallery = [...new Set(
+    (Array.isArray(product.gallery) ? product.gallery : [])
+      .map((src) => materializeImageSrc(src, idHint))
+      .filter(Boolean),
+  )]
+  const image = materializeImageSrc(product.image, idHint) || gallery[0] || ''
+  const nextGallery = gallery.length ? gallery : image ? [image] : []
+  return { ...product, image, gallery: nextGallery }
+}
+
 function receiptPath(receiptUrl) {
-  const name = path.basename(String(receiptUrl || ''))
-  if (!name) return ''
-  return path.join(uploadDir, name)
+  const value = String(receiptUrl || '')
+  if (!value || value.startsWith('data:')) return ''
+  const name = path.basename(value)
+  if (!name || name.includes('..') || name.includes('/') || name.includes('\\')) return ''
+  const privatePath = path.join(receiptDir, name)
+  if (fs.existsSync(privatePath)) return privatePath
+  // سازگاری با رسیدهای قدیمی که در /uploads عمومی بودند
+  const legacy = path.join(uploadDir, name)
+  if (fs.existsSync(legacy)) return legacy
+  return privatePath
+}
+
+function unitSalePrice(product) {
+  if (!product || product.priceOnRequest) return null
+  const price = Math.max(0, Number(product.price) || 0)
+  const discount = Math.min(100, Math.max(0, Math.round(Number(product.discountPercent) || 0)))
+  if (!discount) return price
+  return Math.max(0, Math.round((price * (100 - discount)) / 100))
+}
+
+function buildPricedItems(db, rawItems) {
+  const byId = new Map((db.products || []).map((item) => [String(item.id), item]))
+  const items = []
+  for (const raw of Array.isArray(rawItems) ? rawItems : []) {
+    const id = String(raw?.id || '')
+    const product = byId.get(id)
+    if (!product) {
+      const error = new Error(`محصول نامعتبر در سبد: ${id || '—'}`)
+      error.status = 400
+      throw error
+    }
+    const price = unitSalePrice(product)
+    if (price == null) {
+      const error = new Error(`«${product.title}» فقط با تماس قابل سفارش است.`)
+      error.status = 400
+      throw error
+    }
+    const quantity = Math.min(99, Math.max(1, Math.round(Number(raw?.quantity) || 1)))
+    const sizes = Array.isArray(product.sizes)
+      ? product.sizes.map((item) => String(item || '').trim()).filter(Boolean)
+      : []
+    let size = String(raw?.size || '').trim()
+    if (sizes.length) {
+      if (!sizes.includes(size)) {
+        const error = new Error(`سایز نامعتبر برای «${product.title}».`)
+        error.status = 400
+        throw error
+      }
+    } else {
+      size = ''
+    }
+    const color = String(raw?.color || '').trim()
+    items.push({
+      id: product.id,
+      slug: product.slug,
+      title: product.title,
+      image: product.image,
+      badge: product.badge || '',
+      size,
+      color: color || undefined,
+      quantity,
+      price,
+    })
+  }
+  if (!items.length) {
+    const error = new Error('سبد خالی است.')
+    error.status = 400
+    throw error
+  }
+  return items
 }
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, service: 'imenmahdi-api' })
+})
+
+app.post('/api/uploads', auth, admin, (req, res) => {
+  const dataUrl = req.body?.dataUrl || req.body?.image || ''
+  if (!String(dataUrl).startsWith('data:')) {
+    return res.status(400).json({ message: 'تصویر معتبر نیست.' })
+  }
+  try {
+    const url = saveUpload(dataUrl, String(req.body?.prefix || 'product').replace(/[^\w-]+/g, '').slice(0, 24) || 'product')
+    if (!url) return res.status(400).json({ message: 'ذخیره عکس انجام نشد.' })
+    res.json({ url })
+  } catch (err) {
+    res.status(500).json({ message: err?.message || 'آپلود عکس انجام نشد.' })
+  }
 })
 
 app.post('/api/auth/register', (req, res) => {
@@ -354,45 +524,51 @@ app.get('/api/orders/:id', auth, (req, res) => {
 })
 
 app.post('/api/orders', auth, async (req, res) => {
-  const items = Array.isArray(req.body.items) ? req.body.items : []
-  if (!items.length) return res.status(400).json({ message: 'سبد خالی است.' })
   const shipping = resolveShipping(req.body.shippingId)
-  const subtotal = Number(req.body.subtotal || 0)
   const wantGateway = req.body.paymentMethod !== 'card' && zarinpalConfigured()
   const paymentMethod = wantGateway ? 'zarinpal' : 'card'
-  const order = update((db) => {
-    const created = {
-      id: uniqueId('IM'),
-      userId: req.user.id,
-      customerName: req.user.name,
-      title: req.user.title || 'آقا',
-      company: req.user.company || '',
-      phone: req.user.phone,
-      city: req.body.city || req.user.city || '',
-      address: req.body.address || req.user.address || '',
-      destination: req.body.destination || 'county',
-      deliveryDate: req.body.deliveryDate || '',
-      deliverySlot: req.body.deliverySlot || '',
-      shipping,
-      items,
-      subtotal,
-      shippingPrice: shipping.price,
-      total: subtotal + shipping.price,
-      status: paymentMethod === 'zarinpal' ? ORDER_STATUS.AWAITING_PAYMENT : ORDER_STATUS.AWAITING_RECEIPT,
-      paymentMethod,
-      payment: null,
-      bank: shopBank,
-      receiptUrl: '',
-      receiptName: '',
-      receiptFingerprint: '',
-      botResult: null,
-      createdAt: new Date().toISOString(),
-      note: req.body.note || '',
-      adminNote: '',
-    }
-    db.orders.unshift(created)
-    return created
-  })
+  let order
+  try {
+    order = update((db) => {
+      // قیمت و جمع فقط از دیتابیس — ورودی کلاینت برای مبلغ قابل اعتماد نیست
+      const items = buildPricedItems(db, req.body.items)
+      const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+      const created = {
+        id: uniqueId('IM'),
+        userId: req.user.id,
+        customerName: req.user.name,
+        title: req.user.title || 'آقا',
+        company: req.user.company || '',
+        phone: req.user.phone,
+        city: req.body.city || req.user.city || '',
+        address: req.body.address || req.user.address || '',
+        destination: req.body.destination || 'county',
+        deliveryDate: req.body.deliveryDate || '',
+        deliverySlot: req.body.deliverySlot || '',
+        shipping,
+        items,
+        subtotal,
+        shippingPrice: shipping.price,
+        total: subtotal + shipping.price,
+        status: paymentMethod === 'zarinpal' ? ORDER_STATUS.AWAITING_PAYMENT : ORDER_STATUS.AWAITING_RECEIPT,
+        paymentMethod,
+        payment: null,
+        bank: shopBank,
+        receiptUrl: '',
+        receiptName: '',
+        receiptFingerprint: '',
+        botResult: null,
+        createdAt: new Date().toISOString(),
+        note: req.body.note || '',
+        adminNote: '',
+      }
+      db.orders.unshift(created)
+      return created
+    })
+  } catch (err) {
+    const status = Number(err.status) || 400
+    return res.status(status).json({ message: err.message || 'ثبت سفارش انجام نشد.' })
+  }
   notifyOrder('order_created', withDelivery(order)).catch(() => {})
   res.status(201).json(order)
 })
@@ -589,7 +765,7 @@ app.post('/api/orders/:id/receipt', auth, async (req, res) => {
     fileName: req.body.name || current.receiptName || '',
     fileSize: buffer.length,
     mime: parsed?.mime || '',
-    declaredAmount: req.body.declaredAmount,
+    declaredAmount: current.total,
     last4: req.body.last4,
     order: current,
   })
@@ -621,6 +797,24 @@ app.post('/api/orders/:id/receipt', auth, async (req, res) => {
     notifyAdmin('admin_receipt', withDelivery(next)).catch(() => {})
   }
   res.json(next)
+})
+
+app.get('/api/orders/:id/receipt/file', auth, (req, res) => {
+  const order = load().orders.find((item) => item.id === req.params.id)
+  if (!order) return res.status(404).json({ message: 'سفارش پیدا نشد.' })
+  if (req.user.role !== 'admin' && order.userId !== req.user.id) {
+    return res.status(403).json({ message: 'دسترسی ندارید.' })
+  }
+  const disk = receiptPath(order.receiptUrl)
+  if (!disk || !fs.existsSync(disk)) {
+    return res.status(404).json({ message: 'فایل رسید پیدا نشد.' })
+  }
+  const ext = path.extname(disk).toLowerCase()
+  const type =
+    ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : ext === '.gif' ? 'image/gif' : 'image/jpeg'
+  res.setHeader('Cache-Control', 'private, no-store')
+  res.setHeader('Content-Type', type)
+  res.sendFile(path.resolve(disk))
 })
 
 app.post('/api/orders/:id/receipt/recheck', auth, admin, async (req, res) => {
@@ -705,13 +899,69 @@ app.patch('/api/orders/:id/status', auth, admin, async (req, res) => {
 })
 
 app.get('/api/products', (_req, res) => {
-  res.json(load().products || [])
+  const db = load()
+  const removed = new Set((db.meta?.removedProductIds || []).map(String))
+  const products = (db.products || []).filter((item) => item?.id && !removed.has(String(item.id)))
+  res.json(products)
+})
+
+app.put('/api/products/:id', auth, admin, (req, res) => {
+  const id = String(req.params.id || '')
+  if (!id) return res.status(400).json({ message: 'شناسه محصول لازم است.' })
+  const product = update((db) => {
+    if (!Array.isArray(db.products)) db.products = []
+    const body = req.body && typeof req.body === 'object' ? materializeProductImages({ ...req.body, id }) : { id }
+    const idx = db.products.findIndex((item) => String(item?.id) === id)
+    if (idx >= 0) db.products[idx] = { ...db.products[idx], ...body, id }
+    else db.products.unshift(body)
+    const prevRemoved = Array.isArray(db.meta?.removedProductIds) ? db.meta.removedProductIds.map(String) : []
+    db.meta = {
+      ...(db.meta && typeof db.meta === 'object' ? db.meta : {}),
+      productsSeeded: true,
+      // ثبت مجدد محصول یعنی از لیست حذف‌شده‌ها خارج شود
+      removedProductIds: prevRemoved.filter((item) => item !== id),
+    }
+    const nextIdx = db.products.findIndex((item) => String(item?.id) === id)
+    return db.products[nextIdx >= 0 ? nextIdx : 0]
+  })
+  res.json(product)
+})
+
+app.delete('/api/products/:id', auth, admin, (req, res) => {
+  const id = String(req.params.id || '')
+  if (!id) return res.status(400).json({ message: 'شناسه محصول لازم است.' })
+  update((db) => {
+    db.products = (db.products || []).filter((item) => String(item?.id) !== id)
+    const prevRemoved = Array.isArray(db.meta?.removedProductIds) ? db.meta.removedProductIds : []
+    const removedProductIds = [...new Set([...prevRemoved.map(String), id])]
+    db.meta = {
+      ...(db.meta && typeof db.meta === 'object' ? db.meta : {}),
+      productsSeeded: true,
+      removedProductIds,
+    }
+    return db.products
+  })
+  res.json({ ok: true })
 })
 
 app.put('/api/products', auth, admin, (req, res) => {
   const products = update((db) => {
-    db.products = Array.isArray(req.body) ? req.body : db.products
-    db.meta = { ...(db.meta && typeof db.meta === 'object' ? db.meta : {}), productsSeeded: true }
+    const prevRemoved = Array.isArray(db.meta?.removedProductIds) ? db.meta.removedProductIds.map(String) : []
+    const removed = new Set(prevRemoved)
+    const incoming = Array.isArray(req.body) ? req.body : db.products
+    // محصولات حذف‌شده را از هر همگام‌سازی کامل دوباره زنده نکن
+    const list = (incoming || [])
+      .filter((item) => item?.id && !removed.has(String(item.id)))
+      .map((item) => materializeProductImages(item))
+    db.products = list
+    const keep = new Set(list.map((item) => String(item?.id || '')).filter(Boolean))
+    const catalogIds = (catalogProducts || []).map((item) => String(item.id))
+    const newlyRemoved = catalogIds.filter((id) => !keep.has(id))
+    db.meta = {
+      ...(db.meta && typeof db.meta === 'object' ? db.meta : {}),
+      productsSeeded: true,
+      removedProductIds: [...new Set([...prevRemoved, ...newlyRemoved])],
+    }
     return db.products
   })
   res.json(products)
